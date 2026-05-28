@@ -374,10 +374,18 @@ elif seccion == "🗺️ Mapa":
             "Gustavo A. Madero": "GustavoAMadero",
             "Álvaro Obregón": "AlvaroObregon",
             "Cuajimalpa de Morelos": "Cuajimalpa",
-            "Cuauhtémoc": "Cuauhtemoc",
+            "Cuauhtémoc": "Cuauhtémoc",
             "Coyoacán": "Coyoacan",
             "La Magdalena Contreras": "MagdalenaContreras",
-            "Tláhuac": "Tlahuac"
+            "Tláhuac": "Tlahuac",
+            "Venustiano Carranza": "VenustianoCarranza",
+            "Milpa Alta": "MilpaAlta",
+            "Miguel Hidalgo": "MiguelHidalgo",
+            "Iztapalapa": "Iztapalapa",
+            "Iztacalco": "Iztacalco",
+            "Xochimilco": "Xochimilco",
+            "Azcapotzalco": "Azcapotzalco",
+            "Tlalpan": "Tlalpan"
         }
 
         plusvalia = df_clean.groupby("places")["price"].median().reset_index()
