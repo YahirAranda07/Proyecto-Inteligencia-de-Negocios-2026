@@ -264,22 +264,21 @@ elif seccion == "🤖 Modelo ML":
 
     # ── Conclusión ───────────────────────────────────────────
     st.subheader("4. ¿Por qué el Árbol de Decisión?")
-    st.success("""
-    El Árbol de Decisión fue el modelo ganador porque el precio de un inmueble 
-    no depende de una sola fórmula fija — depende de la combinación de varios 
-    factores. Por ejemplo, un departamento de 100m² en Miguel Hidalgo tiene un 
-    valor muy diferente al mismo departamento en Iztapalapa.
+    st.success("El Árbol de Decisión fue el modelo ganador porque el precio de un inmueble no depende de una sola fórmula fija — depende de la combinación de varios factores. Por ejemplo, un departamento de 100m² en Miguel Hidalgo tiene un valor muy diferente al mismo departamento en Iztapalapa.")
 
-    El modelo utilizó 4 variables para aprender estas combinaciones:
-    • Metros cuadrados y precio por m² como medidas del tamaño y valor del inmueble
-    • Alcaldía (Miguel Hidalgo, Cuauhtémoc, Iztapalapa, etc.) para capturar la ubicación
-    • Tipo de inmueble (casa o departamento) para distinguir entre segmentos del mercado
+    st.markdown("#### Variables utilizadas:")
+    st.markdown("""
+    - 📐 **Metros cuadrados y precio por m²** — miden el tamaño y valor del inmueble
+    - 📍 **Alcaldía** (Miguel Hidalgo, Cuauhtémoc, Iztapalapa, etc.) — captura la ubicación
+    - 🏠 **Tipo de inmueble** (casa o departamento) — distingue entre segmentos del mercado
+    """)
 
-    Para que el modelo no memorizara los datos sino que aprendiera patrones reales,
-    se limitó su complejidad: máximo 8 niveles de profundidad, mínimo 20 propiedades
+    st.info("""
+    Para que el modelo no memorizara los datos sino que aprendiera patrones reales, 
+    se limitó su complejidad: máximo 8 niveles de profundidad, mínimo 20 propiedades 
     para hacer una división y mínimo 10 propiedades en cada grupo final. Gracias a 
-    estos ajustes el modelo logró un R² de 0.93, es decir, explica el 93% de la 
-    variación en precios del mercado inmobiliario de la CDMX.
+    estos ajustes el modelo logró un **R² de 0.93**, es decir, explica el **93% de la 
+    variación en precios** del mercado inmobiliario de la CDMX.
     """)
 
     st.markdown("""
