@@ -94,11 +94,6 @@ elif seccion == "📊 Gráficas":
         ax4.set_title("Proporción de casas vs departamentos")
         plt.tight_layout()
         st.pyplot(fig4)
-        
-    st.subheader("Distribución por tipo de inmueble y alcaldía")
-    conteo_tipo = df_filtrado["property_type"].value_counts()
-    conteo_places = df_filtrado["places"].value_counts()
-    col1, col2 = st.columns(2)
 
     with col2:
         fig5, ax5 = plt.subplots(figsize=(5, 5))
