@@ -99,29 +99,13 @@ elif seccion == "📊 Gráficas":
     conteo_tipo = df_filtrado["property_type"].value_counts()
     conteo_places = df_filtrado["places"].value_counts()
     col1, col2 = st.columns(2)
-    with col1:
-        fig4, ax4 = plt.subplots(figsize=(5, 5))
-        ax4.pie(
-            conteo_tipo.values,
-            labels=conteo_tipo.index,
-            autopct="%1.1f%%",
-            colors=["steelblue", "salmon"],
-            startangle=90,
-            wedgeprops={"edgecolor": "white", "linewidth": 2}
-        )
-        ax4.set_title("Proporción de casas vs departamentos")
-        plt.tight_layout()
-        st.pyplot(fig4)
+
     with col2:
         fig5, ax5 = plt.subplots(figsize=(5, 5))
-        ax5.pie(
-            conteo_places.values,
-            labels=conteo_places.index,
-            autopct="%1.1f%%",
-            startangle=90,
-            wedgeprops={"edgecolor": "white", "linewidth": 2}
-        )
-        ax5.set_title("Proporción de propiedades por alcaldía")
+        conteo_places.sort_values().plot(kind="barh", ax=ax5, color="steelblue", edgecolor="white")
+        ax5.set_title("Propiedades por alcaldía")
+        ax5.set_xlabel("Número de propiedades")
+        ax5.set_ylabel("")
         plt.tight_layout()
         st.pyplot(fig5)
     
