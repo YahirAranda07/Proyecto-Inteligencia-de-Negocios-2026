@@ -74,10 +74,28 @@ elif seccion == "📊 Gráficas":
                                   options=df_clean["property_type"].unique(),
                                   default=df_clean["property_type"].unique())
     df_filtrado = df_clean[df_clean["property_type"].isin(tipo_filtro)]
-
+    
     st.divider()
 
-    # Gráfica 1 — Precio promedio por alcaldía
+    # Gráfica 1 — Pastel de tipos de inmueble
+    st.subheader("Distribución por tipo de inmueble")
+    conteo_tipo = df_filtrado["property_type"].value_counts()
+    fig4, ax4 = plt.subplots(figsize=(7, 7))
+    ax4.pie(
+        conteo_tipo.values,
+        labels=conteo_tipo.index,
+        autopct="%1.1f%%",
+        colors=["steelblue", "salmon"],
+        startangle=90,
+        wedgeprops={"edgecolor": "white", "linewidth": 2}
+    )
+    ax4.set_title("Proporción de casas vs departamentos")
+    plt.tight_layout()
+    st.pyplot(fig4)
+    
+    st.divider()
+
+    # Gráfica 2 — Precio promedio por alcaldía
     st.subheader("Precio promedio por alcaldía")
     promedio = df_filtrado.groupby("places")["price"].mean().sort_values(ascending=False)
     fig1, ax1 = plt.subplots(figsize=(14, 5))
@@ -91,7 +109,7 @@ elif seccion == "📊 Gráficas":
 
     st.divider()
 
-    # Gráfica 2 — Distribución de precios (boxplot)
+    # Gráfica 3 — Distribución de precios (boxplot)
     st.subheader("Distribución de precios por alcaldía")
     orden = df_filtrado.groupby("places")["price"].median().sort_values(ascending=False).index
     df_filtrado = df_filtrado.copy()
@@ -109,7 +127,7 @@ elif seccion == "📊 Gráficas":
 
     st.divider()
 
-    # Gráfica 3 — Volumen de oferta
+    # Gráfica 4 — Volumen de oferta
     st.subheader("Volumen de oferta por alcaldía y tipo de inmueble")
     volumen = df_filtrado.groupby(["places", "property_type"]).size().unstack(fill_value=0)
     fig3, ax3 = plt.subplots(figsize=(14, 5))
@@ -121,23 +139,7 @@ elif seccion == "📊 Gráficas":
     plt.tight_layout()
     st.pyplot(fig3)
     
-    st.divider()
 
-    # Gráfica 4 — Pastel de tipos de inmueble
-    st.subheader("Distribución por tipo de inmueble")
-    conteo_tipo = df_filtrado["property_type"].value_counts()
-    fig4, ax4 = plt.subplots(figsize=(7, 7))
-    ax4.pie(
-        conteo_tipo.values,
-        labels=conteo_tipo.index,
-        autopct="%1.1f%%",
-        colors=["steelblue", "salmon"],
-        startangle=90,
-        wedgeprops={"edgecolor": "white", "linewidth": 2}
-    )
-    ax4.set_title("Proporción de casas vs departamentos")
-    plt.tight_layout()
-    st.pyplot(fig4)
 elif seccion == "🤖 Modelo ML":
     st.title("🤖 Modelo ML")
     st.info("Sección en construcción")
