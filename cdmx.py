@@ -78,9 +78,12 @@ elif seccion == "📊 Gráficas":
     st.divider()
 
     # Gráfica 1 — Pastel de tipos de inmueble
-    st.subheader("Distribución por tipo de inmueble")
+    st.subheader("Distribución por tipo de inmueble y alcaldía")
     conteo_tipo = df_filtrado["property_type"].value_counts()
+    conteo_places = df_filtrado["places"].value_counts().sort_values()
+
     col1, col2 = st.columns(2)
+
     with col1:
         fig4, ax4 = plt.subplots(figsize=(5, 5))
         ax4.pie(
@@ -97,7 +100,7 @@ elif seccion == "📊 Gráficas":
 
     with col2:
         fig5, ax5 = plt.subplots(figsize=(5, 5))
-        conteo_places.sort_values().plot(kind="barh", ax=ax5, color="steelblue", edgecolor="white")
+        conteo_places.plot(kind="barh", ax=ax5, color="steelblue", edgecolor="white")
         ax5.set_title("Propiedades por alcaldía")
         ax5.set_xlabel("Número de propiedades")
         ax5.set_ylabel("")
