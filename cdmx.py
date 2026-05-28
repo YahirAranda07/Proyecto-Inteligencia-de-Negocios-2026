@@ -264,7 +264,12 @@ elif seccion == "🤖 Modelo ML":
 
     # ── Conclusión ───────────────────────────────────────────
     st.subheader("4. ¿Por qué el Árbol de Decisión?")
-    st.success("El Árbol de Decisión fue el modelo ganador porque el precio de un inmueble no depende de una sola fórmula fija — depende de la combinación de varios factores. Por ejemplo, un departamento de 100m² en Miguel Hidalgo tiene un valor muy diferente al mismo departamento en Iztapalapa.")
+    st.markdown("""
+    El Árbol de Decisión fue el modelo ganador porque el precio de un inmueble 
+    no depende de una sola fórmula fija — depende de la combinación de varios 
+    factores. Por ejemplo, un departamento de 100m² en Miguel Hidalgo tiene un 
+    valor muy diferente al mismo departamento en Iztapalapa.
+    """)
 
     st.markdown("#### Variables utilizadas:")
     st.markdown("""
@@ -273,7 +278,7 @@ elif seccion == "🤖 Modelo ML":
     - 🏠 **Tipo de inmueble** (casa o departamento) — distingue entre segmentos del mercado
     """)
 
-    st.info("""
+    st.markdown("""
     Para que el modelo no memorizara los datos sino que aprendiera patrones reales, 
     se limitó su complejidad: máximo 8 niveles de profundidad, mínimo 20 propiedades 
     para hacer una división y mínimo 10 propiedades en cada grupo final. Gracias a 
