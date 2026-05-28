@@ -120,7 +120,24 @@ elif seccion == "📊 Gráficas":
     plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
     st.pyplot(fig3)
+    
+    st.divider()
 
+    # Gráfica 4 — Pastel de tipos de inmueble
+    st.subheader("Distribución por tipo de inmueble")
+    conteo_tipo = df_filtrado["property_type"].value_counts()
+    fig4, ax4 = plt.subplots(figsize=(7, 7))
+    ax4.pie(
+        conteo_tipo.values,
+        labels=conteo_tipo.index,
+        autopct="%1.1f%%",
+        colors=["steelblue", "salmon"],
+        startangle=90,
+        wedgeprops={"edgecolor": "white", "linewidth": 2}
+    )
+    ax4.set_title("Proporción de casas vs departamentos")
+    plt.tight_layout()
+    st.pyplot(fig4)
 elif seccion == "🤖 Modelo ML":
     st.title("🤖 Modelo ML")
     st.info("Sección en construcción")
