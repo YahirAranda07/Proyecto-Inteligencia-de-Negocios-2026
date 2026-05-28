@@ -153,6 +153,19 @@ elif seccion == "📊 Gráficas":
     plt.tight_layout()
     st.pyplot(fig3)
 
+    st.divider()
+
+    # Gráfica 5 — Histograma precio por m²
+    st.subheader("Distribución del precio por m²")
+    fig5, ax5 = plt.subplots(figsize=(14, 5))
+    ax5.hist(df_filtrado["price_per_m2"], bins=50, color="steelblue", edgecolor="white")
+    ax5.set_title("Distribución del precio por m² - CDMX", fontsize=14)
+    ax5.set_xlabel("Precio por m² (MXN)", fontsize=12)
+    ax5.set_ylabel("Número de propiedades", fontsize=12)
+    ax5.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x:,.0f}"))
+    plt.tight_layout()
+    st.pyplot(fig5)
+
 elif seccion == "🗺️ Mapa":
     st.title("🗺️ Mapa")
 
