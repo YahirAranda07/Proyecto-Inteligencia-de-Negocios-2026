@@ -165,36 +165,113 @@ elif seccion == "🤖 Modelo ML":
 
     st.divider()
 
-    # Métricas de los modelos
-    st.subheader("Comparación de modelos")
-    col1, col2 = st.columns(2)
+    # ── Correlaciones ────────────────────────────────────────
+    st.subheader("1. Correlación de variables con el precio")
+    st.markdown("Antes de entrenar el modelo analizamos qué variables tienen mayor relación con el precio.")
+
+    columnas = ["price", "surface_covered_in_m2", "price_per_m2", "price_usd_per_m2"]
+    correlaciones = df_clean[columnas].corr()
+
+    col1, col2 = st.columns([1, 1])
 
     with col1:
-        st.markdown("#### Regresión Lineal")
-        st.metric("R²", "0.6658")
-        st.metric("MAE", "$1,059,084 MXN")
+        fig_corr, ax_corr = plt.subplots(figsize=(6, 4))
+        sns.heatmap(correlaciones, annot=True, fmt=".2f", cmap="coolwarm",
+                    center=0, ax=ax_corr, linewidths=0.5)
+        ax_corr.set_title("Mapa de correlaciones")
+        plt.tight_layout()
+        st.pyplot(fig_corr)
 
     with col2:
-        st.markdown("#### Árbol de Decisión")
-        st.metric("R²", "0.9265")
-        st.metric("MAE", "$267,296 MXN")
+        st.markdown("#### Interpretación")
+        st.markdown("""
+        - **price_per_m²** tiene la mayor correlación con el precio **(0.55)**
+        - **surface_covered_in_m²** tiene correlación moderada **(0.50)**
+        - Ambas variables fueron incluidas en el modelo
+        - Las correlaciones mejoraron al limpiar outliers del dataset
+        """)
 
     st.divider()
 
-    # Explicación de métricas
-    st.subheader("¿Qué significan estas métricas?")
+    # ── Comparación de métricas ──────────────────────────────
+    st.subheader("2. Comparación de modelos")
+
     col3, col4 = st.columns(2)
 
     with col3:
-        st.info("**R²** indica qué porcentaje de la variación en precios explica el modelo. Más cercano a 1 es mejor.")
+        st.markdown("#### 📉 Regresión Lineal")
+        st.metric("R²", "0.6658", delta=None)
+        st.metric("MAE", "$1,059,084 MXN", delta=None)
+        st.info("Explica el 67% de la variación en precios. Error promedio de 1 millón de pesos.")
 
     with col4:
-        st.info("**MAE** es el error promedio de predicción en pesos. Entre más bajo, más preciso es el modelo.")
+        st.markdown("#### 🌳 Árbol de Decisión")
+        st.metric("R²", "0.9265", delta=None)
+        st.metric("MAE", "$267,296 MXN", delta=None)
+        st.success("Explica el 93% de la variación en precios. Error promedio de $267k pesos.")
 
     st.divider()
 
-    # Variables importantes
-    st.subheader("Variables utilizadas en el modelo")
+    # ── Gráficas Real vs Predicho ────────────────────────────
+    st.subheader("3. Real vs Predicho — Comparación visual")
+    st.markdown("Entre más cerca estén los puntos de la línea roja, mejor es el modelo.")
+
+    from sklearn.linear_model import LinearRegression
+    from sklearn.tree import DecisionTreeRegressor
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import LabelEncoder
+
+    df_model = df_clean[["price", "surface_covered_in_m2", "price_per_m2", "places", "property_type"]].dropna().copy()
+    df_model["places_enc"] = le_places.transform(df_model["places"])
+    df_model["type_enc"] = le_type.transform(df_model["property_type"])
+
+    X = df_model[["surface_covered_in_m2", "price_per_m2", "places_enc", "type_enc"]]
+    y = df_model["price"]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    lr = LinearRegression()
+    lr.fit(X_train, y_train)
+    y_pred_lr = lr.predict(X_test)
+    y_pred_dt = dt.predict(X_test)
+
+    col5, col6 = st.columns(2)
+
+    with col5:
+        fig_lr, ax_lr = plt.subplots(figsize=(6, 5))
+        ax_lr.scatter(y_test, y_pred_lr, alpha=0.3, s=10, color="steelblue")
+        ax_lr.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], color="red", linewidth=1.5)
+        ax_lr.set_title("Regresión Lineal")
+        ax_lr.set_xlabel("Precio real (MXN)")
+        ax_lr.set_ylabel("Precio predicho (MXN)")
+        ax_lr.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x/1e6:.1f}M"))
+        ax_lr.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x/1e6:.1f}M"))
+        plt.tight_layout()
+        st.pyplot(fig_lr)
+
+    with col6:
+        fig_dt, ax_dt = plt.subplots(figsize=(6, 5))
+        ax_dt.scatter(y_test, y_pred_dt, alpha=0.3, s=10, color="steelblue")
+        ax_dt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], color="red", linewidth=1.5)
+        ax_dt.set_title("Árbol de Decisión")
+        ax_dt.set_xlabel("Precio real (MXN)")
+        ax_dt.set_ylabel("Precio predicho (MXN)")
+        ax_dt.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x/1e6:.1f}M"))
+        ax_dt.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x/1e6:.1f}M"))
+        plt.tight_layout()
+        st.pyplot(fig_dt)
+
+    st.divider()
+
+    # ── Conclusión ───────────────────────────────────────────
+    st.subheader("4. ¿Por qué el Árbol de Decisión?")
+    st.success("""
+    El Árbol de Decisión supera a la Regresión Lineal porque el mercado inmobiliario
+    no es lineal — un m² en Miguel Hidalgo no vale lo mismo que uno en Iztapalapa.
+    El árbol aprende estas combinaciones de factores y predice con mayor precisión,
+    además se ajustaron sus hiperparámetros (max_depth=8, min_samples_split=20,
+    min_samples_leaf=10) para evitar overfitting.
+    """)
+
     st.markdown("""
     | Variable | Descripción | Tipo |
     |---|---|---|
@@ -202,16 +279,6 @@ elif seccion == "🤖 Modelo ML":
     | `price_per_m2` | Precio por metro cuadrado | Cuantitativa continua |
     | `places` | Alcaldía | Cualitativa nominal |
     | `property_type` | Tipo de inmueble | Cualitativa nominal |
-    """)
-
-    st.divider()
-
-    # Conclusión del modelo
-    st.subheader("¿Por qué el Árbol de Decisión?")
-    st.success("""
-    El Árbol de Decisión supera a la Regresión Lineal porque el mercado inmobiliario 
-    no es lineal — un m² en Miguel Hidalgo no vale lo mismo que uno en Iztapalapa. 
-    El árbol aprende estas combinaciones de factores y predice con mayor precisión.
     """)
 
 elif seccion == "🗺️ Mapa":
