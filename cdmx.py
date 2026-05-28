@@ -374,47 +374,52 @@ elif seccion == "🗺️ Mapa":
             "Gustavo A. Madero": "GustavoAMadero",
             "Álvaro Obregón": "AlvaroObregon",
             "Cuajimalpa de Morelos": "Cuajimalpa",
-            "Cuauhtémoc": "Cuauhtémoc",
+            "Cuauhtémoc": "Cuauhtemoc",
             "Coyoacán": "Coyoacan",
             "La Magdalena Contreras": "MagdalenaContreras",
-            "Tláhuac": "Tlahuac",
-            "Venustiano Carranza": "VenustianoCarranza",
-            "Milpa Alta": "MilpaAlta",
-            "Miguel Hidalgo": "MiguelHidalgo",
-            "Iztapalapa": "Iztapalapa",
-            "Iztacalco": "Iztacalco",
-            "Xochimilco": "Xochimilco",
-            "Azcapotzalco": "Azcapotzalco",
-            "Tlalpan": "Tlalpan"
+            "Tláhuac": "Tlahuac"
         }
 
         plusvalia = df_clean.groupby("places")["price"].median().reset_index()
         plusvalia.columns = ["places", "precio_mediano"]
 
+        cdmx_url = "https://raw.githubusercontent.com/edavgaun/GeoJson/refs/heads/main/CDMX/alcaldias.geojson"
         cdmx_json2 = requests.get(cdmx_url).json()
+
         for feature in cdmx_json2["features"]:
             nombre_geo = feature["properties"]["nomgeo"]
             nombre_dataset = mapeo.get(nombre_geo, nombre_geo.replace(" ", ""))
             match = plusvalia[plusvalia["places"] == nombre_dataset]
             feature["properties"]["precio_mediano"] = int(match["precio_mediano"].values[0]) if not match.empty else 0
 
-        mapa_plusvalia = folium.Map(location=[19.43, -99.13], zoom_start=11)
+        precio_max = plusvalia["precio_mediano"].max()
+        precio_min = plusvalia["precio_mediano"].min()
 
-        folium.Choropleth(
-            geo_data=cdmx_json2,
-            data=plusvalia,
-            columns=["places", "precio_mediano"],
-            key_on="feature.properties.nomgeo",
-            fill_color="YlOrRd",
-            fill_opacity=0.7,
-            line_opacity=0.5,
-            legend_name="Precio mediano (MXN)",
-            nan_fill_color="lightgray"
-        ).add_to(mapa_plusvalia)
+        def get_color(precio):
+            if precio == 0:
+                return "#d3d3d3"
+            norm = (precio - precio_min) / (precio_max - precio_min)
+            if norm > 0.8:
+                return "#bd0026"
+            elif norm > 0.6:
+                return "#f03b20"
+            elif norm > 0.4:
+                return "#fd8d3c"
+            elif norm > 0.2:
+                return "#fecc5c"
+            else:
+                return "#ffffb2"
+
+        mapa_plusvalia = folium.Map(location=[19.43, -99.13], zoom_start=11)
 
         folium.GeoJson(
             cdmx_json2,
-            style_function=lambda x: {"fillOpacity": 0, "color": "transparent"},
+            style_function=lambda x: {
+                "fillColor": get_color(x["properties"]["precio_mediano"]),
+                "color": "gray",
+                "weight": 1.5,
+                "fillOpacity": 0.7
+            },
             tooltip=folium.GeoJsonTooltip(
                 fields=["nomgeo", "precio_mediano"],
                 aliases=["Alcaldía:", "Precio mediano (MXN):"],
