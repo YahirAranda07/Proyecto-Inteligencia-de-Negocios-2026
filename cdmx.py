@@ -156,7 +156,63 @@ elif seccion == "📊 Gráficas":
 
 elif seccion == "🤖 Modelo ML":
     st.title("🤖 Modelo ML")
-    st.info("Sección en construcción")
+
+    st.markdown("""
+    Para predecir el precio de los inmuebles se entrenaron y compararon dos modelos:
+    - **Regresión Lineal** — asume una relación proporcional entre variables
+    - **Árbol de Decisión** — aprende combinaciones de condiciones para estimar el precio
+    """)
+
+    st.divider()
+
+    # Métricas de los modelos
+    st.subheader("Comparación de modelos")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("#### Regresión Lineal")
+        st.metric("R²", "0.6658")
+        st.metric("MAE", "$1,059,084 MXN")
+
+    with col2:
+        st.markdown("#### Árbol de Decisión")
+        st.metric("R²", "0.9265")
+        st.metric("MAE", "$267,296 MXN")
+
+    st.divider()
+
+    # Explicación de métricas
+    st.subheader("¿Qué significan estas métricas?")
+    col3, col4 = st.columns(2)
+
+    with col3:
+        st.info("**R²** indica qué porcentaje de la variación en precios explica el modelo. Más cercano a 1 es mejor.")
+
+    with col4:
+        st.info("**MAE** es el error promedio de predicción en pesos. Entre más bajo, más preciso es el modelo.")
+
+    st.divider()
+
+    # Variables importantes
+    st.subheader("Variables utilizadas en el modelo")
+    st.markdown("""
+    | Variable | Descripción | Tipo |
+    |---|---|---|
+    | `surface_covered_in_m2` | Superficie cubierta | Cuantitativa continua |
+    | `price_per_m2` | Precio por metro cuadrado | Cuantitativa continua |
+    | `places` | Alcaldía | Cualitativa nominal |
+    | `property_type` | Tipo de inmueble | Cualitativa nominal |
+    """)
+
+    st.divider()
+
+    # Conclusión del modelo
+    st.subheader("¿Por qué el Árbol de Decisión?")
+    st.success("""
+    El Árbol de Decisión supera a la Regresión Lineal porque el mercado inmobiliario 
+    no es lineal — un m² en Miguel Hidalgo no vale lo mismo que uno en Iztapalapa. 
+    El árbol aprende estas combinaciones de factores y predice con mayor precisión.
+    """)
 
 elif seccion == "🗺️ Mapa":
     st.title("🗺️ Mapa")
