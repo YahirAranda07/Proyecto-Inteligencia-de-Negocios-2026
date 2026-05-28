@@ -576,4 +576,60 @@ elif seccion == "📝 Observaciones":
 
 elif seccion == "🔮 Predicciones":
     st.title("🔮 Predicciones")
-    st.info("Sección en construcción")
+    st.markdown("Ingresa las características del inmueble para estimar su valor de mercado según el modelo.")
+
+    st.divider()
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        alcaldia = st.selectbox("Alcaldía", options=sorted(le_places.classes_))
+        tipo = st.selectbox("Tipo de inmueble", options=sorted(le_type.classes_))
+
+    with col2:
+        metros = st.number_input("Superficie cubierta (m²)", min_value=10, max_value=1000, value=80, step=5)
+        precio_m2 = st.number_input("Precio por m² (MXN)", min_value=1000, max_value=100000, value=20000, step=500)
+
+    st.divider()
+
+    if st.button("Estimar precio", use_container_width=True):
+        alcaldia_enc = le_places.transform([alcaldia])[0]
+        tipo_enc = le_type.transform([tipo])[0]
+
+        X_pred = pd.DataFrame([[metros, precio_m2, alcaldia_enc, tipo_enc]],
+                              columns=["surface_covered_in_m2", "price_per_m2", "places_enc", "type_enc"])
+
+        precio_estimado = dt.predict(X_pred)[0]
+
+        st.success(f"💰 Precio estimado: **${precio_estimado:,.0f} MXN**")
+
+        st.divider()
+
+        col3, col4, col5 = st.columns(3)
+        with col3:
+            st.metric("Precio estimado (MXN)", f"${precio_estimado:,.0f}")
+        with col4:
+            st.metric("Precio estimado (USD)", f"${precio_estimado / 17.5:,.0f}")
+        with col5:
+            st.metric("Precio por m²", f"${precio_estimado / metros:,.0f} MXN")
+
+        st.divider()
+
+        # Comparar con el promedio de la alcaldía
+        promedio_alcaldia = df_clean[df_clean["places"] == alcaldia]["price"].mean()
+        diferencia = precio_estimado - promedio_alcaldia
+        diferencia_pct = (diferencia / promedio_alcaldia) * 100
+
+        st.markdown("#### Comparación con el mercado")
+        col6, col7 = st.columns(2)
+        with col6:
+            st.metric(
+                f"Promedio en {alcaldia}",
+                f"${promedio_alcaldia:,.0f} MXN",
+                delta=f"{diferencia_pct:.1f}% vs estimado"
+            )
+        with col7:
+            if diferencia < 0:
+                st.success(f"✅ El precio estimado está **${abs(diferencia):,.0f} MXN por debajo** del promedio de {alcaldia} — posible oportunidad de inversión.")
+            else:
+                st.warning(f"⚠️ El precio estimado está **${diferencia:,.0f} MXN por encima** del promedio de {alcaldia}.")
