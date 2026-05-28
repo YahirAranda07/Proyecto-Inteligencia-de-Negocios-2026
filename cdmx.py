@@ -301,7 +301,7 @@ elif seccion == "🗺️ Mapa":
     tab1, tab2 = st.tabs(["📍 Propiedades", "🌡️ Plusvalía por alcaldía"])
 
     # ── Tab 1 — Propiedades ──────────────────────────────────
-    with tab1:
+   with tab1:
         st.markdown("Visualización de propiedades en el mapa. Haz clic en cada punto para ver el precio y detalles.")
 
         # Filtros
@@ -315,9 +315,23 @@ elif seccion == "🗺️ Mapa":
                                           options=sorted(df["property_type"].unique()),
                                           default=sorted(df["property_type"].unique()))
 
+        # Slider de precio
+        precio_min = int(df["price"].quantile(0.01))
+        precio_max = int(df["price"].quantile(0.99))
+        rango_precio = st.slider(
+            "Filtrar por rango de precio (MXN)",
+            min_value=precio_min,
+            max_value=precio_max,
+            value=(precio_min, precio_max),
+            step=100000,
+            format="$%d"
+        )
+
         df_mapa = df[
             (df["places"].isin(alcaldia_filtro)) &
-            (df["property_type"].isin(tipo_filtro))
+            (df["property_type"].isin(tipo_filtro)) &
+            (df["price"] >= rango_precio[0]) &
+            (df["price"] <= rango_precio[1])
         ].dropna(subset=["lat", "lon"])
 
         st.markdown(f"Mostrando **{len(df_mapa):,}** propiedades")
