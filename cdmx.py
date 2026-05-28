@@ -297,7 +297,110 @@ elif seccion == "🤖 Modelo ML":
 
 elif seccion == "🗺️ Mapa":
     st.title("🗺️ Mapa")
-    st.info("Sección en construcción")
+
+    tab1, tab2 = st.tabs(["📍 Propiedades", "🌡️ Plusvalía por alcaldía"])
+
+    # ── Tab 1 — Propiedades ──────────────────────────────────
+    with tab1:
+        st.markdown("Visualización de propiedades en el mapa. Haz clic en cada punto para ver el precio y detalles.")
+
+        # Filtros
+        col1, col2 = st.columns(2)
+        with col1:
+            alcaldia_filtro = st.multiselect("Filtrar por alcaldía",
+                                              options=sorted(df["places"].unique()),
+                                              default=sorted(df["places"].unique()))
+        with col2:
+            tipo_filtro = st.multiselect("Filtrar por tipo de inmueble",
+                                          options=sorted(df["property_type"].unique()),
+                                          default=sorted(df["property_type"].unique()))
+
+        df_mapa = df[
+            (df["places"].isin(alcaldia_filtro)) &
+            (df["property_type"].isin(tipo_filtro))
+        ].dropna(subset=["lat", "lon"])
+
+        st.markdown(f"Mostrando **{len(df_mapa):,}** propiedades")
+
+        mapa = folium.Map(location=[df["lat"].mean(), df["lon"].mean()], zoom_start=11)
+
+        cdmx_url = "https://raw.githubusercontent.com/edavgaun/GeoJson/refs/heads/main/CDMX/alcaldias.geojson"
+        cdmx_json = requests.get(cdmx_url).json()
+
+        folium.GeoJson(
+            cdmx_json,
+            style_function=lambda x: {"fillColor": "lightblue", "color": "gray", "weight": 1.5, "fillOpacity": 0.2},
+            tooltip=folium.GeoJsonTooltip(fields=["nomgeo"], aliases=["Alcaldía:"])
+        ).add_to(mapa)
+
+        for _, row in df_mapa.iterrows():
+            folium.CircleMarker(
+                location=[row["lat"], row["lon"]],
+                radius=3,
+                color="crimson",
+                fill=True,
+                fill_opacity=0.6,
+                popup=folium.Popup(
+                    f"<b>Precio:</b> ${row['price']:,.0f} MXN<br>"
+                    f"<b>Alcaldía:</b> {row['places']}<br>"
+                    f"<b>Tipo:</b> {row['property_type']}<br>"
+                    f"<b>Superficie:</b> {row['surface_covered_in_m2']} m²",
+                    max_width=200
+                )
+            ).add_to(mapa)
+
+        st_folium(mapa, width=1200, height=500)
+
+    # ── Tab 2 — Plusvalía ────────────────────────────────────
+    with tab2:
+        st.markdown("Alcaldías coloreadas por precio mediano de las propiedades. Rojo indica mayor plusvalía.")
+
+        mapeo = {
+            "Benito Juárez": "BenitoJuarez",
+            "Gustavo A. Madero": "GustavoAMadero",
+            "Álvaro Obregón": "AlvaroObregon",
+            "Cuajimalpa de Morelos": "Cuajimalpa",
+            "Cuauhtémoc": "Cuauhtemoc",
+            "Coyoacán": "Coyoacan",
+            "La Magdalena Contreras": "MagdalenaContreras",
+            "Tláhuac": "Tlahuac"
+        }
+
+        plusvalia = df_clean.groupby("places")["price"].median().reset_index()
+        plusvalia.columns = ["places", "precio_mediano"]
+
+        cdmx_json2 = requests.get(cdmx_url).json()
+        for feature in cdmx_json2["features"]:
+            nombre_geo = feature["properties"]["nomgeo"]
+            nombre_dataset = mapeo.get(nombre_geo, nombre_geo.replace(" ", ""))
+            match = plusvalia[plusvalia["places"] == nombre_dataset]
+            feature["properties"]["precio_mediano"] = int(match["precio_mediano"].values[0]) if not match.empty else 0
+
+        mapa_plusvalia = folium.Map(location=[19.43, -99.13], zoom_start=11)
+
+        folium.Choropleth(
+            geo_data=cdmx_json2,
+            data=plusvalia,
+            columns=["places", "precio_mediano"],
+            key_on="feature.properties.nomgeo",
+            fill_color="YlOrRd",
+            fill_opacity=0.7,
+            line_opacity=0.5,
+            legend_name="Precio mediano (MXN)",
+            nan_fill_color="lightgray"
+        ).add_to(mapa_plusvalia)
+
+        folium.GeoJson(
+            cdmx_json2,
+            style_function=lambda x: {"fillOpacity": 0, "color": "transparent"},
+            tooltip=folium.GeoJsonTooltip(
+                fields=["nomgeo", "precio_mediano"],
+                aliases=["Alcaldía:", "Precio mediano (MXN):"],
+                localize=True
+            )
+        ).add_to(mapa_plusvalia)
+
+        st_folium(mapa_plusvalia, width=1200, height=500)
 
 elif seccion == "📝 Observaciones":
     st.title("📝 Observaciones")
