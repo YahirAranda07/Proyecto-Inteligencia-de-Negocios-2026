@@ -430,7 +430,83 @@ elif seccion == "🤖 Modelo ML":
 
 elif seccion == "📝 Observaciones":
     st.title("📝 Observaciones")
-    st.info("Sección en construcción")
+
+    st.markdown("### ¿En qué alcaldía conviene más invertir para compra-venta de inmuebles?")
+    st.markdown("Con base en el análisis realizado, estas son las principales conclusiones:")
+
+    st.divider()
+
+    # Observación 1
+    st.subheader("📊 Comportamiento del mercado")
+    st.markdown("""
+    - El mercado inmobiliario de la CDMX está dominado por **departamentos**, los cuales representan la mayor parte de la oferta en casi todas las alcaldías.
+    - **Benito Juárez** es la alcaldía con mayor volumen de propiedades disponibles, seguida de **Miguel Hidalgo** y **Álvaro Obregón**.
+    - Los precios varían significativamente entre alcaldías — **MagdalenaContreras** y **Cuajimalpa** tienen los precios medianos más altos, mientras que **Iztapalapa**, **Tláhuac** e **Iztacalco** tienen los más bajos.
+    """)
+
+    st.divider()
+
+    # Observación 2
+    st.subheader("🗺️ Plusvalía y ubicación")
+    st.markdown("""
+    - Las alcaldías del poniente y sur de la ciudad concentran los precios más altos por m².
+    - **Miguel Hidalgo** y **Cuajimalpa** destacan como las zonas de mayor plusvalía.
+    - Las alcaldías del oriente como **Iztapalapa**, **Iztacalco** y **Venustiano Carranza** tienen precios más accesibles pero con menor plusvalía histórica.
+    """)
+
+    st.divider()
+
+    # Observación 3
+    st.subheader("🤖 Modelo de predicción")
+    st.markdown("""
+    - El **Árbol de Decisión** fue el modelo más preciso con un R² de 0.93 y un error promedio de $267,296 MXN.
+    - Las variables más importantes para predecir el precio fueron el **precio por m²** y la **superficie cubierta**.
+    - La **alcaldía** y el **tipo de inmueble** también tienen un impacto significativo en el precio final.
+    """)
+
+    st.divider()
+
+    # Observación 4 — Conclusión de negocio
+    st.subheader("💰 Recomendación de inversión")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.success("""
+        **Mayor volumen**
+        
+        🏆 Miguel Hidalgo
+        
+        328 propiedades subvaluadas con descuento promedio de 16.5%
+        """)
+
+    with col2:
+        st.warning("""
+        **Mayor descuento**
+        
+        🥇 Cuajimalpa
+        
+        86 propiedades con el mayor descuento promedio de 17.8%
+        """)
+
+    with col3:
+        st.info("""
+        **Menor capital**
+        
+        💡 Iztapalapa
+        
+        178 propiedades subvaluadas con precios de entrada más accesibles
+        """)
+
+    st.divider()
+
+    st.markdown("""
+    En conclusión, **Miguel Hidalgo** es la alcaldía más recomendable para invertir 
+    en compra-venta de inmuebles por su combinación de alto volumen de oportunidades, 
+    buena plusvalía y descuento promedio competitivo. Para inversores con menor 
+    capital disponible, **Iztapalapa** representa una alternativa viable con buena 
+    cantidad de oportunidades a precios accesibles.
+    """)
 
 elif seccion == "🔮 Predicciones":
     st.title("🔮 Predicciones")
