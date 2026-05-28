@@ -49,8 +49,8 @@ st.sidebar.title("🏠 Inversión Inmobiliaria CDMX")
 seccion = st.sidebar.radio("Navegación", [
     "🏠 Inicio",
     "📊 Gráficas",
-    "🤖 Modelo ML",
     "🗺️ Mapa",
+    "🤖 Modelo ML",
     "📝 Observaciones",
     "🔮 Predicciones"
 ])
@@ -152,7 +152,140 @@ elif seccion == "📊 Gráficas":
     plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
     st.pyplot(fig3)
-    
+
+elif seccion == "🗺️ Mapa":
+    st.title("🗺️ Mapa")
+
+    tab1, tab2 = st.tabs(["📍 Propiedades", "🌡️ Plusvalía por alcaldía"])
+
+    with tab1:
+        st.markdown("Visualización de propiedades...")
+        # resto del código con 8 espacios de indentación
+
+        # Filtros
+        col1, col2 = st.columns(2)
+        with col1:
+            alcaldia_filtro = st.multiselect("Filtrar por alcaldía",
+                                              options=sorted(df["places"].unique()),
+                                              default=sorted(df["places"].unique()))
+        with col2:
+            tipo_filtro = st.multiselect("Filtrar por tipo de inmueble",
+                                          options=sorted(df["property_type"].unique()),
+                                          default=sorted(df["property_type"].unique()))
+
+        # Slider de precio
+        precio_min = int(df["price"].quantile(0.01))
+        precio_max = int(df["price"].quantile(0.99))
+        rango_precio = st.slider(
+            "Filtrar por rango de precio (MXN)",
+            min_value=precio_min,
+            max_value=precio_max,
+            value=(precio_min, precio_max),
+            step=100000,
+            format="$%d"
+        )
+
+        df_mapa = df[
+            (df["places"].isin(alcaldia_filtro)) &
+            (df["property_type"].isin(tipo_filtro)) &
+            (df["price"] >= rango_precio[0]) &
+            (df["price"] <= rango_precio[1])
+        ].dropna(subset=["lat", "lon"])
+
+        st.markdown(f"Mostrando **{len(df_mapa):,}** propiedades")
+
+        mapa = folium.Map(location=[df["lat"].mean(), df["lon"].mean()], zoom_start=11)
+
+        cdmx_url = "https://raw.githubusercontent.com/edavgaun/GeoJson/refs/heads/main/CDMX/alcaldias.geojson"
+        cdmx_json = requests.get(cdmx_url).json()
+
+        folium.GeoJson(
+            cdmx_json,
+            style_function=lambda x: {"fillColor": "lightblue", "color": "gray", "weight": 1.5, "fillOpacity": 0.2},
+            tooltip=folium.GeoJsonTooltip(fields=["nomgeo"], aliases=["Alcaldía:"])
+        ).add_to(mapa)
+
+        for _, row in df_mapa.iterrows():
+            folium.CircleMarker(
+                location=[row["lat"], row["lon"]],
+                radius=3,
+                color="crimson",
+                fill=True,
+                fill_opacity=0.6,
+                popup=folium.Popup(
+                    f"<b>Precio:</b> ${row['price']:,.0f} MXN<br>"
+                    f"<b>Alcaldía:</b> {row['places']}<br>"
+                    f"<b>Tipo:</b> {row['property_type']}<br>"
+                    f"<b>Superficie:</b> {row['surface_covered_in_m2']} m²",
+                    max_width=200
+                )
+            ).add_to(mapa)
+
+        st_folium(mapa, width=1200, height=500)
+
+    # ── Tab 2 — Plusvalía ────────────────────────────────────
+    with tab2:
+        st.markdown("Alcaldías coloreadas por precio mediano de las propiedades. Rojo indica mayor plusvalía.")
+
+        mapeo = {
+            "Benito Juárez": "BenitoJuarez",
+            "Gustavo A. Madero": "GustavoAMadero",
+            "Álvaro Obregón": "AlvaroObregon",
+            "Cuajimalpa de Morelos": "Cuajimalpa",
+            "Cuauhtémoc": "Cuauhtemoc",
+            "Coyoacán": "Coyoacan",
+            "La Magdalena Contreras": "MagdalenaContreras",
+            "Tláhuac": "Tlahuac"
+        }
+
+        plusvalia = df_clean.groupby("places")["price"].median().reset_index()
+        plusvalia.columns = ["places", "precio_mediano"]
+
+        cdmx_url = "https://raw.githubusercontent.com/edavgaun/GeoJson/refs/heads/main/CDMX/alcaldias.geojson"
+        cdmx_json2 = requests.get(cdmx_url).json()
+
+        for feature in cdmx_json2["features"]:
+            nombre_geo = feature["properties"]["nomgeo"]
+            nombre_dataset = mapeo.get(nombre_geo, nombre_geo.replace(" ", ""))
+            match = plusvalia[plusvalia["places"] == nombre_dataset]
+            feature["properties"]["precio_mediano"] = int(match["precio_mediano"].values[0]) if not match.empty else 0
+
+        precio_max = plusvalia["precio_mediano"].max()
+        precio_min = plusvalia["precio_mediano"].min()
+
+        def get_color(precio):
+            if precio == 0:
+                return "#d3d3d3"
+            norm = (precio - precio_min) / (precio_max - precio_min)
+            if norm > 0.8:
+                return "#bd0026"
+            elif norm > 0.6:
+                return "#f03b20"
+            elif norm > 0.4:
+                return "#fd8d3c"
+            elif norm > 0.2:
+                return "#fecc5c"
+            else:
+                return "#ffffb2"
+
+        mapa_plusvalia = folium.Map(location=[19.43, -99.13], zoom_start=11)
+
+        folium.GeoJson(
+            cdmx_json2,
+            style_function=lambda x: {
+                "fillColor": get_color(x["properties"]["precio_mediano"]),
+                "color": "gray",
+                "weight": 1.5,
+                "fillOpacity": 0.7
+            },
+            tooltip=folium.GeoJsonTooltip(
+                fields=["nomgeo", "precio_mediano"],
+                aliases=["Alcaldía:", "Precio mediano (MXN):"],
+                localize=True
+            )
+        ).add_to(mapa_plusvalia)
+
+        st_folium(mapa_plusvalia, width=1200, height=500)
 
 elif seccion == "🤖 Modelo ML":
     st.title("🤖 Modelo ML")
@@ -294,140 +427,6 @@ elif seccion == "🤖 Modelo ML":
     | `places` | Alcaldía | Cualitativa nominal |
     | `property_type` | Tipo de inmueble | Cualitativa nominal |
     """)
-
-elif seccion == "🗺️ Mapa":
-    st.title("🗺️ Mapa")
-
-    tab1, tab2 = st.tabs(["📍 Propiedades", "🌡️ Plusvalía por alcaldía"])
-
-    with tab1:
-        st.markdown("Visualización de propiedades...")
-        # resto del código con 8 espacios de indentación
-
-        # Filtros
-        col1, col2 = st.columns(2)
-        with col1:
-            alcaldia_filtro = st.multiselect("Filtrar por alcaldía",
-                                              options=sorted(df["places"].unique()),
-                                              default=sorted(df["places"].unique()))
-        with col2:
-            tipo_filtro = st.multiselect("Filtrar por tipo de inmueble",
-                                          options=sorted(df["property_type"].unique()),
-                                          default=sorted(df["property_type"].unique()))
-
-        # Slider de precio
-        precio_min = int(df["price"].quantile(0.01))
-        precio_max = int(df["price"].quantile(0.99))
-        rango_precio = st.slider(
-            "Filtrar por rango de precio (MXN)",
-            min_value=precio_min,
-            max_value=precio_max,
-            value=(precio_min, precio_max),
-            step=100000,
-            format="$%d"
-        )
-
-        df_mapa = df[
-            (df["places"].isin(alcaldia_filtro)) &
-            (df["property_type"].isin(tipo_filtro)) &
-            (df["price"] >= rango_precio[0]) &
-            (df["price"] <= rango_precio[1])
-        ].dropna(subset=["lat", "lon"])
-
-        st.markdown(f"Mostrando **{len(df_mapa):,}** propiedades")
-
-        mapa = folium.Map(location=[df["lat"].mean(), df["lon"].mean()], zoom_start=11)
-
-        cdmx_url = "https://raw.githubusercontent.com/edavgaun/GeoJson/refs/heads/main/CDMX/alcaldias.geojson"
-        cdmx_json = requests.get(cdmx_url).json()
-
-        folium.GeoJson(
-            cdmx_json,
-            style_function=lambda x: {"fillColor": "lightblue", "color": "gray", "weight": 1.5, "fillOpacity": 0.2},
-            tooltip=folium.GeoJsonTooltip(fields=["nomgeo"], aliases=["Alcaldía:"])
-        ).add_to(mapa)
-
-        for _, row in df_mapa.iterrows():
-            folium.CircleMarker(
-                location=[row["lat"], row["lon"]],
-                radius=3,
-                color="crimson",
-                fill=True,
-                fill_opacity=0.6,
-                popup=folium.Popup(
-                    f"<b>Precio:</b> ${row['price']:,.0f} MXN<br>"
-                    f"<b>Alcaldía:</b> {row['places']}<br>"
-                    f"<b>Tipo:</b> {row['property_type']}<br>"
-                    f"<b>Superficie:</b> {row['surface_covered_in_m2']} m²",
-                    max_width=200
-                )
-            ).add_to(mapa)
-
-        st_folium(mapa, width=1200, height=500)
-
-    # ── Tab 2 — Plusvalía ────────────────────────────────────
-    with tab2:
-        st.markdown("Alcaldías coloreadas por precio mediano de las propiedades. Rojo indica mayor plusvalía.")
-
-        mapeo = {
-            "Benito Juárez": "BenitoJuarez",
-            "Gustavo A. Madero": "GustavoAMadero",
-            "Álvaro Obregón": "AlvaroObregon",
-            "Cuajimalpa de Morelos": "Cuajimalpa",
-            "Cuauhtémoc": "Cuauhtemoc",
-            "Coyoacán": "Coyoacan",
-            "La Magdalena Contreras": "MagdalenaContreras",
-            "Tláhuac": "Tlahuac"
-        }
-
-        plusvalia = df_clean.groupby("places")["price"].median().reset_index()
-        plusvalia.columns = ["places", "precio_mediano"]
-
-        cdmx_url = "https://raw.githubusercontent.com/edavgaun/GeoJson/refs/heads/main/CDMX/alcaldias.geojson"
-        cdmx_json2 = requests.get(cdmx_url).json()
-
-        for feature in cdmx_json2["features"]:
-            nombre_geo = feature["properties"]["nomgeo"]
-            nombre_dataset = mapeo.get(nombre_geo, nombre_geo.replace(" ", ""))
-            match = plusvalia[plusvalia["places"] == nombre_dataset]
-            feature["properties"]["precio_mediano"] = int(match["precio_mediano"].values[0]) if not match.empty else 0
-
-        precio_max = plusvalia["precio_mediano"].max()
-        precio_min = plusvalia["precio_mediano"].min()
-
-        def get_color(precio):
-            if precio == 0:
-                return "#d3d3d3"
-            norm = (precio - precio_min) / (precio_max - precio_min)
-            if norm > 0.8:
-                return "#bd0026"
-            elif norm > 0.6:
-                return "#f03b20"
-            elif norm > 0.4:
-                return "#fd8d3c"
-            elif norm > 0.2:
-                return "#fecc5c"
-            else:
-                return "#ffffb2"
-
-        mapa_plusvalia = folium.Map(location=[19.43, -99.13], zoom_start=11)
-
-        folium.GeoJson(
-            cdmx_json2,
-            style_function=lambda x: {
-                "fillColor": get_color(x["properties"]["precio_mediano"]),
-                "color": "gray",
-                "weight": 1.5,
-                "fillOpacity": 0.7
-            },
-            tooltip=folium.GeoJsonTooltip(
-                fields=["nomgeo", "precio_mediano"],
-                aliases=["Alcaldía:", "Precio mediano (MXN):"],
-                localize=True
-            )
-        ).add_to(mapa_plusvalia)
-
-        st_folium(mapa_plusvalia, width=1200, height=500)
 
 elif seccion == "📝 Observaciones":
     st.title("📝 Observaciones")
