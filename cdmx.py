@@ -300,9 +300,9 @@ elif seccion == "🗺️ Mapa":
 
     tab1, tab2 = st.tabs(["📍 Propiedades", "🌡️ Plusvalía por alcaldía"])
 
-    # ── Tab 1 — Propiedades ──────────────────────────────────
-       with tab1:
-        st.markdown("Visualización de propiedades en el mapa. Haz clic en cada punto para ver el precio y detalles.")
+    with tab1:
+        st.markdown("Visualización de propiedades...")
+        # resto del código con 8 espacios de indentación
 
         # Filtros
         col1, col2 = st.columns(2)
