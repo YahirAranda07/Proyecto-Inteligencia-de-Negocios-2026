@@ -436,7 +436,7 @@ elif seccion == "📝 Observaciones":
 
     st.divider()
 
-    # Observación 1
+    # ── Comportamiento del mercado ───────────────────────────
     st.subheader("📊 Comportamiento del mercado")
     st.markdown("""
     - El mercado inmobiliario de la CDMX está dominado por **departamentos**, los cuales representan la mayor parte de la oferta en casi todas las alcaldías.
@@ -446,7 +446,7 @@ elif seccion == "📝 Observaciones":
 
     st.divider()
 
-    # Observación 2
+    # ── Plusvalía ────────────────────────────────────────────
     st.subheader("🗺️ Plusvalía y ubicación")
     st.markdown("""
     - Las alcaldías del poniente y sur de la ciudad concentran los precios más altos por m².
@@ -456,7 +456,7 @@ elif seccion == "📝 Observaciones":
 
     st.divider()
 
-    # Observación 3
+    # ── Modelo ───────────────────────────────────────────────
     st.subheader("🤖 Modelo de predicción")
     st.markdown("""
     - El **Árbol de Decisión** fue el modelo más preciso con un R² de 0.93 y un error promedio de $267,296 MXN.
@@ -466,12 +466,65 @@ elif seccion == "📝 Observaciones":
 
     st.divider()
 
-    # Observación 4 — Conclusión de negocio
-    st.subheader("💰 Recomendación de inversión")
+    # ── Oportunidades de inversión + gráficas ───────────────
+    st.subheader("💰 Oportunidades de inversión")
+    st.markdown("Propiedades cuyo precio real está entre 10% y 40% por debajo del valor estimado por el modelo.")
 
-    col1, col2, col3 = st.columns(3)
+    # Calcular oportunidades
+    df_model2 = df_clean[["price", "surface_covered_in_m2", "price_per_m2", "places", "property_type"]].dropna().copy()
+    df_model2["places_enc"] = le_places.transform(df_model2["places"])
+    df_model2["type_enc"] = le_type.transform(df_model2["property_type"])
+    X_all = df_model2[["surface_covered_in_m2", "price_per_m2", "places_enc", "type_enc"]]
+    df_model2["precio_predicho"] = dt.predict(X_all)
+    df_model2["diferencia_pct"] = ((df_model2["price"] - df_model2["precio_predicho"]) / df_model2["precio_predicho"]) * 100
+
+    oportunidades_reales = df_model2[
+        (df_model2["diferencia_pct"] < -10) &
+        (df_model2["diferencia_pct"] > -40)
+    ].copy()
+    oportunidades_reales["diferencia_pct_pos"] = oportunidades_reales["diferencia_pct"].abs()
+
+    # Gráficas lado a lado
+    col1, col2 = st.columns(2)
 
     with col1:
+        cantidad = oportunidades_reales.groupby("places").size().sort_values(ascending=False)
+        colores = ["green" if x >= 200 else "steelblue" if x >= 100 else "lightblue" for x in cantidad]
+        fig1, ax1 = plt.subplots(figsize=(7, 5))
+        bars = ax1.bar(cantidad.index, cantidad.values, color=colores, edgecolor="white")
+        ax1.set_title("Cantidad de propiedades subvaluadas por alcaldía", fontsize=11)
+        ax1.set_xlabel("Alcaldía")
+        ax1.set_ylabel("Cantidad de propiedades")
+        for bar, val in zip(bars, cantidad.values):
+            ax1.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 1,
+                     str(val), ha="center", va="bottom", fontsize=8, fontweight="bold")
+        plt.xticks(rotation=45, ha="right")
+        plt.tight_layout()
+        st.pyplot(fig1)
+
+    with col2:
+        descuento = oportunidades_reales.groupby("places")["diferencia_pct_pos"].mean().sort_values(ascending=False)
+        fig2, ax2 = plt.subplots(figsize=(7, 5))
+        bars2 = ax2.bar(descuento.index, descuento.values, color="salmon", edgecolor="white")
+        ax2.set_title("% promedio por debajo del valor de mercado", fontsize=11)
+        ax2.set_xlabel("Alcaldía")
+        ax2.set_ylabel("Descuento promedio (%)")
+        ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.1f}%"))
+        for bar, val in zip(bars2, descuento.values):
+            ax2.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.1,
+                     f"{val:.1f}%", ha="center", va="bottom", fontsize=8, fontweight="bold")
+        plt.xticks(rotation=45, ha="right")
+        plt.tight_layout()
+        st.pyplot(fig2)
+
+    st.divider()
+
+    # ── Recomendación final ──────────────────────────────────
+    st.subheader("🏆 Recomendación de inversión")
+
+    col3, col4, col5 = st.columns(3)
+
+    with col3:
         st.success("""
         **Mayor volumen**
         
@@ -480,7 +533,7 @@ elif seccion == "📝 Observaciones":
         328 propiedades subvaluadas con descuento promedio de 16.5%
         """)
 
-    with col2:
+    with col4:
         st.warning("""
         **Mayor descuento**
         
@@ -489,7 +542,7 @@ elif seccion == "📝 Observaciones":
         86 propiedades con el mayor descuento promedio de 17.8%
         """)
 
-    with col3:
+    with col5:
         st.info("""
         **Menor capital**
         
