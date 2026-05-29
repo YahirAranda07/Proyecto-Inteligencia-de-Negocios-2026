@@ -58,27 +58,25 @@ seccion = st.sidebar.radio("Navegación", [
 # ── Secciones ────────────────────────────────────────────────
 if seccion == "🏠 Inicio":
     st.title("Análisis del Mercado Inmobiliario - CDMX")
-    st.markdown("### ¿En qué alcaldía conviene más invertir para compra-venta de inmuebles?")
+    st.markdown("### ¿En qué lugar en CDMX conviene más invertir para compra-venta de inmuebles?")
     st.write("Usa el menú lateral para navegar entre las secciones del análisis.")
 
     col1, col2, col3 = st.columns(3)
     col1.metric("Total propiedades", f"{len(df):,}")
-    col2.metric("Alcaldías analizadas", df["places"].nunique())
+    col2.metric("Lugares en CDMX analizados", df["places"].nunique())
     col3.metric("Precio mediano", f"${df_clean['price'].median():,.0f} MXN")
 
 elif seccion == "📊 Gráficas":
     st.title("📊 Gráficas")
 
-    # Filtros
-    tipo_filtro = st.multiselect("Filtrar por tipo de inmueble", 
+    tipo_filtro = st.multiselect("Filtrar por tipo de inmueble",
                                   options=df_clean["property_type"].unique(),
                                   default=df_clean["property_type"].unique())
     df_filtrado = df_clean[df_clean["property_type"].isin(tipo_filtro)]
-    
+
     st.divider()
 
-    # Gráfica 1 — Pastel de tipos de inmueble
-    st.subheader("Distribución por tipo de inmueble y alcaldía")
+    st.subheader("Distribución por tipo de inmueble y lugar en CDMX")
     conteo_tipo = df_filtrado["property_type"].value_counts()
     conteo_places = df_filtrado["places"].value_counts().sort_values()
 
@@ -101,20 +99,19 @@ elif seccion == "📊 Gráficas":
     with col2:
         fig5, ax5 = plt.subplots(figsize=(5, 5))
         conteo_places.plot(kind="barh", ax=ax5, color="steelblue", edgecolor="white")
-        ax5.set_title("Propiedades por alcaldía")
+        ax5.set_title("Propiedades por lugar en CDMX")
         ax5.set_xlabel("Número de propiedades")
         ax5.set_ylabel("")
         plt.tight_layout()
         st.pyplot(fig5)
-    
+
     st.divider()
 
-    # Gráfica 2 — Precio promedio por alcaldía
-    st.subheader("Precio promedio por alcaldía")
+    st.subheader("Precio promedio por lugar en CDMX")
     promedio = df_filtrado.groupby("places")["price"].mean().sort_values(ascending=False)
     fig1, ax1 = plt.subplots(figsize=(14, 5))
     promedio.plot(kind="bar", ax=ax1, color="steelblue", edgecolor="white")
-    ax1.set_xlabel("Alcaldía")
+    ax1.set_xlabel("Lugar en CDMX")
     ax1.set_ylabel("Precio promedio (MXN)")
     ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x:,.0f}"))
     plt.xticks(rotation=45, ha="right")
@@ -123,15 +120,14 @@ elif seccion == "📊 Gráficas":
 
     st.divider()
 
-    # Gráfica 3 — Distribución de precios (boxplot)
-    st.subheader("Distribución de precios por alcaldía")
+    st.subheader("Distribución de precios por lugar en CDMX")
     orden = df_filtrado.groupby("places")["price"].median().sort_values(ascending=False).index
     df_filtrado = df_filtrado.copy()
     df_filtrado["places"] = pd.Categorical(df_filtrado["places"], categories=orden, ordered=True)
     df_filtrado = df_filtrado.sort_values("places")
     fig2, ax2 = plt.subplots(figsize=(14, 5))
     df_filtrado.boxplot(column="price", by="places", ax=ax2, showfliers=False)
-    ax2.set_xlabel("Alcaldía")
+    ax2.set_xlabel("Lugar en CDMX")
     ax2.set_ylabel("Precio (MXN)")
     ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x:,.0f}"))
     plt.suptitle("")
@@ -141,12 +137,11 @@ elif seccion == "📊 Gráficas":
 
     st.divider()
 
-    # Gráfica 4 — Volumen de oferta
-    st.subheader("Volumen de oferta por alcaldía y tipo de inmueble")
+    st.subheader("Volumen de oferta por lugar en CDMX y tipo de inmueble")
     volumen = df_filtrado.groupby(["places", "property_type"]).size().unstack(fill_value=0)
     fig3, ax3 = plt.subplots(figsize=(14, 5))
     volumen.plot(kind="bar", ax=ax3, edgecolor="white")
-    ax3.set_xlabel("Alcaldía")
+    ax3.set_xlabel("Lugar en CDMX")
     ax3.set_ylabel("Número de propiedades")
     ax3.legend(title="Tipo de inmueble")
     plt.xticks(rotation=45, ha="right")
@@ -155,7 +150,6 @@ elif seccion == "📊 Gráficas":
 
     st.divider()
 
-    # Gráfica 5 — Histograma metros cuadrados
     st.subheader("Distribución de metros cuadrados")
     fig5, ax5 = plt.subplots(figsize=(14, 5))
     ax5.hist(df_clean["surface_covered_in_m2"], bins=50, color="steelblue", edgecolor="white")
@@ -169,24 +163,21 @@ elif seccion == "📊 Gráficas":
 elif seccion == "🗺️ Mapa":
     st.title("🗺️ Mapa")
 
-    tab1, tab2 = st.tabs(["📍 Propiedades", "🌡️ Plusvalía por alcaldía"])
+    tab1, tab2 = st.tabs(["📍 Propiedades", "🌡️ Plusvalía por lugar en CDMX"])
 
     with tab1:
-        st.markdown("Visualización de propiedades...")
-        # resto del código con 8 espacios de indentación
+        st.markdown("Visualización de propiedades en el mapa. Haz clic en cada punto para ver el precio y detalles.")
 
-        # Filtros
         col1, col2 = st.columns(2)
         with col1:
-            alcaldia_filtro = st.multiselect("Filtrar por alcaldía",
-                                              options=sorted(df["places"].unique()),
-                                              default=sorted(df["places"].unique()))
+            lugar_filtro = st.multiselect("Filtrar por lugar en CDMX",
+                                          options=sorted(df["places"].unique()),
+                                          default=sorted(df["places"].unique()))
         with col2:
             tipo_filtro = st.multiselect("Filtrar por tipo de inmueble",
                                           options=sorted(df["property_type"].unique()),
                                           default=sorted(df["property_type"].unique()))
 
-        # Slider de precio
         precio_min = int(df["price"].quantile(0.01))
         precio_max = int(df["price"].quantile(0.99))
         rango_precio = st.slider(
@@ -199,13 +190,14 @@ elif seccion == "🗺️ Mapa":
         )
 
         df_mapa = df[
-            (df["places"].isin(alcaldia_filtro)) &
+            (df["places"].isin(lugar_filtro)) &
             (df["property_type"].isin(tipo_filtro)) &
             (df["price"] >= rango_precio[0]) &
             (df["price"] <= rango_precio[1])
         ].dropna(subset=["lat", "lon"])
 
-        st.markdown(f"Mostrando **{len(df_mapa):,}** propiedades")
+        df_mapa_muestra = df_mapa.sample(min(1000, len(df_mapa)), random_state=42)
+        st.markdown(f"Mostrando **{len(df_mapa_muestra):,}** de **{len(df_mapa):,}** propiedades")
 
         mapa = folium.Map(location=[df["lat"].mean(), df["lon"].mean()], zoom_start=11)
 
@@ -215,10 +207,10 @@ elif seccion == "🗺️ Mapa":
         folium.GeoJson(
             cdmx_json,
             style_function=lambda x: {"fillColor": "lightblue", "color": "gray", "weight": 1.5, "fillOpacity": 0.2},
-            tooltip=folium.GeoJsonTooltip(fields=["nomgeo"], aliases=["Alcaldía:"])
+            tooltip=folium.GeoJsonTooltip(fields=["nomgeo"], aliases=["Lugar en CDMX:"])
         ).add_to(mapa)
 
-        for _, row in df_mapa.iterrows():
+        for _, row in df_mapa_muestra.iterrows():
             folium.CircleMarker(
                 location=[row["lat"], row["lon"]],
                 radius=3,
@@ -227,7 +219,7 @@ elif seccion == "🗺️ Mapa":
                 fill_opacity=0.6,
                 popup=folium.Popup(
                     f"<b>Precio:</b> ${row['price']:,.0f} MXN<br>"
-                    f"<b>Alcaldía:</b> {row['places']}<br>"
+                    f"<b>Lugar en CDMX:</b> {row['places']}<br>"
                     f"<b>Tipo:</b> {row['property_type']}<br>"
                     f"<b>Superficie:</b> {row['surface_covered_in_m2']} m²",
                     max_width=200
@@ -236,9 +228,8 @@ elif seccion == "🗺️ Mapa":
 
         st_folium(mapa, width=1200, height=500)
 
-    # ── Tab 2 — Plusvalía ────────────────────────────────────
     with tab2:
-        st.markdown("Alcaldías coloreadas por precio mediano de las propiedades. Rojo indica mayor plusvalía.")
+        st.markdown("Lugares en CDMX coloreados por precio mediano de las propiedades. Rojo indica mayor plusvalía.")
 
         mapeo = {
             "Benito Juárez": "BenitoJuarez",
@@ -254,7 +245,6 @@ elif seccion == "🗺️ Mapa":
         plusvalia = df_clean.groupby("places")["price"].median().reset_index()
         plusvalia.columns = ["places", "precio_mediano"]
 
-        cdmx_url = "https://raw.githubusercontent.com/edavgaun/GeoJson/refs/heads/main/CDMX/alcaldias.geojson"
         cdmx_json2 = requests.get(cdmx_url).json()
 
         for feature in cdmx_json2["features"]:
@@ -263,13 +253,13 @@ elif seccion == "🗺️ Mapa":
             match = plusvalia[plusvalia["places"] == nombre_dataset]
             feature["properties"]["precio_mediano"] = int(match["precio_mediano"].values[0]) if not match.empty else 0
 
-        precio_max = plusvalia["precio_mediano"].max()
-        precio_min = plusvalia["precio_mediano"].min()
+        precio_max_map = plusvalia["precio_mediano"].max()
+        precio_min_map = plusvalia["precio_mediano"].min()
 
         def get_color(precio):
             if precio == 0:
                 return "#d3d3d3"
-            norm = (precio - precio_min) / (precio_max - precio_min)
+            norm = (precio - precio_min_map) / (precio_max_map - precio_min_map)
             if norm > 0.8:
                 return "#bd0026"
             elif norm > 0.6:
@@ -293,7 +283,7 @@ elif seccion == "🗺️ Mapa":
             },
             tooltip=folium.GeoJsonTooltip(
                 fields=["nomgeo", "precio_mediano"],
-                aliases=["Alcaldía:", "Precio mediano (MXN):"],
+                aliases=["Lugar en CDMX:", "Precio mediano (MXN):"],
                 localize=True
             )
         ).add_to(mapa_plusvalia)
@@ -311,7 +301,6 @@ elif seccion == "🤖 Modelo ML":
 
     st.divider()
 
-    # ── Correlaciones ────────────────────────────────────────
     st.subheader("1. Correlación de variables con el precio")
     st.markdown("Antes de entrenar el modelo analizamos qué variables tienen mayor relación con el precio.")
 
@@ -339,7 +328,6 @@ elif seccion == "🤖 Modelo ML":
 
     st.divider()
 
-    # ── Comparación de métricas ──────────────────────────────
     st.subheader("2. Comparación de modelos")
 
     col3, col4 = st.columns(2)
@@ -358,7 +346,6 @@ elif seccion == "🤖 Modelo ML":
 
     st.divider()
 
-    # ── Gráficas Real vs Predicho ────────────────────────────
     st.subheader("3. Real vs Predicho — Comparación visual")
     st.markdown("Entre más cerca estén los puntos de la línea roja, mejor es el modelo.")
 
@@ -408,7 +395,6 @@ elif seccion == "🤖 Modelo ML":
 
     st.divider()
 
-    # ── Conclusión ───────────────────────────────────────────
     st.subheader("4. ¿Por qué el Árbol de Decisión?")
     st.markdown("""
     El Árbol de Decisión fue el modelo ganador porque el precio de un inmueble 
@@ -420,7 +406,7 @@ elif seccion == "🤖 Modelo ML":
     st.markdown("#### Variables utilizadas:")
     st.markdown("""
     - 📐 **Metros cuadrados y precio por m²** — miden el tamaño y valor del inmueble
-    - 📍 **Alcaldía** (Miguel Hidalgo, Cuauhtémoc, Iztapalapa, etc.) — captura la ubicación
+    - 📍 **Lugar en CDMX** (Miguel Hidalgo, Cuauhtémoc, Iztapalapa, etc.) — captura la ubicación
     - 🏠 **Tipo de inmueble** (casa o departamento) — distingue entre segmentos del mercado
     """)
 
@@ -437,53 +423,48 @@ elif seccion == "🤖 Modelo ML":
     |---|---|---|
     | `surface_covered_in_m2` | Superficie cubierta | Cuantitativa continua |
     | `price_per_m2` | Precio por metro cuadrado | Cuantitativa continua |
-    | `places` | Alcaldía | Cualitativa nominal |
+    | `places` | Lugar en CDMX | Cualitativa nominal |
     | `property_type` | Tipo de inmueble | Cualitativa nominal |
     """)
 
 elif seccion == "📝 Observaciones":
     st.title("📝 Observaciones")
 
-    st.markdown("### ¿En qué alcaldía conviene más invertir para compra-venta de inmuebles?")
+    st.markdown("### ¿En qué lugar en CDMX conviene más invertir para compra-venta de inmuebles?")
     st.markdown("Con base en el análisis realizado, estas son las principales conclusiones:")
 
     st.divider()
 
-    # ── Comportamiento del mercado ───────────────────────────
     st.subheader("📊 Comportamiento del mercado")
     st.markdown("""
-    - El mercado inmobiliario de la CDMX está dominado por **departamentos**, los cuales representan la mayor parte de la oferta en casi todas las alcaldías.
-    - **Benito Juárez** es la alcaldía con mayor volumen de propiedades disponibles, seguida de **Miguel Hidalgo** y **Álvaro Obregón**.
-    - Los precios varían significativamente entre alcaldías — **MagdalenaContreras** y **Cuajimalpa** tienen los precios medianos más altos, mientras que **Iztapalapa**, **Tláhuac** e **Iztacalco** tienen los más bajos.
+    - El mercado inmobiliario de la CDMX está dominado por **departamentos**, los cuales representan la mayor parte de la oferta en casi todos los lugares.
+    - **Benito Juárez** es el lugar con mayor volumen de propiedades disponibles, seguida de **Miguel Hidalgo** y **Álvaro Obregón**.
+    - Los precios varían significativamente entre lugares — **MagdalenaContreras** y **Cuajimalpa** tienen los precios medianos más altos, mientras que **Iztapalapa**, **Tláhuac** e **Iztacalco** tienen los más bajos.
     """)
 
     st.divider()
 
-    # ── Plusvalía ────────────────────────────────────────────
     st.subheader("🗺️ Plusvalía y ubicación")
     st.markdown("""
-    - Las alcaldías del poniente y sur de la ciudad concentran los precios más altos por m².
-    - **Miguel Hidalgo** y **Cuajimalpa** destacan como las zonas de mayor plusvalía.
-    - Las alcaldías del oriente como **Iztapalapa**, **Iztacalco** y **Venustiano Carranza** tienen precios más accesibles pero con menor plusvalía histórica.
+    - Los lugares del poniente y sur de la ciudad concentran los precios más altos por m².
+    - **Miguel Hidalgo** y **Cuajimalpa** destacan como los lugares de mayor plusvalía.
+    - Los lugares del oriente como **Iztapalapa**, **Iztacalco** y **Venustiano Carranza** tienen precios más accesibles pero con menor plusvalía histórica.
     """)
 
     st.divider()
 
-    # ── Modelo ───────────────────────────────────────────────
     st.subheader("🤖 Modelo de predicción")
     st.markdown("""
     - El **Árbol de Decisión** fue el modelo más preciso con un R² de 0.93 y un error promedio de $267,296 MXN.
     - Las variables más importantes para predecir el precio fueron el **precio por m²** y la **superficie cubierta**.
-    - La **alcaldía** y el **tipo de inmueble** también tienen un impacto significativo en el precio final.
+    - El **lugar en CDMX** y el **tipo de inmueble** también tienen un impacto significativo en el precio final.
     """)
 
     st.divider()
 
-    # ── Oportunidades de inversión + gráficas ───────────────
     st.subheader("💰 Oportunidades de inversión")
     st.markdown("Propiedades cuyo precio real está entre 10% y 40% por debajo del valor estimado por el modelo.")
 
-    # Calcular oportunidades
     df_model2 = df_clean[["price", "surface_covered_in_m2", "price_per_m2", "places", "property_type"]].dropna().copy()
     df_model2["places_enc"] = le_places.transform(df_model2["places"])
     df_model2["type_enc"] = le_type.transform(df_model2["property_type"])
@@ -497,7 +478,6 @@ elif seccion == "📝 Observaciones":
     ].copy()
     oportunidades_reales["diferencia_pct_pos"] = oportunidades_reales["diferencia_pct"].abs()
 
-    # Gráficas lado a lado
     col1, col2 = st.columns(2)
 
     with col1:
@@ -505,8 +485,8 @@ elif seccion == "📝 Observaciones":
         colores = ["green" if x >= 200 else "steelblue" if x >= 100 else "lightblue" for x in cantidad]
         fig1, ax1 = plt.subplots(figsize=(7, 5))
         bars = ax1.bar(cantidad.index, cantidad.values, color=colores, edgecolor="white")
-        ax1.set_title("Cantidad de propiedades subvaluadas por alcaldía", fontsize=11)
-        ax1.set_xlabel("Alcaldía")
+        ax1.set_title("Cantidad de propiedades subvaluadas por lugar en CDMX", fontsize=11)
+        ax1.set_xlabel("Lugar en CDMX")
         ax1.set_ylabel("Cantidad de propiedades")
         for bar, val in zip(bars, cantidad.values):
             ax1.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 1,
@@ -520,7 +500,7 @@ elif seccion == "📝 Observaciones":
         fig2, ax2 = plt.subplots(figsize=(7, 5))
         bars2 = ax2.bar(descuento.index, descuento.values, color="salmon", edgecolor="white")
         ax2.set_title("% promedio por debajo del valor de mercado", fontsize=11)
-        ax2.set_xlabel("Alcaldía")
+        ax2.set_xlabel("Lugar en CDMX")
         ax2.set_ylabel("Descuento promedio (%)")
         ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.1f}%"))
         for bar, val in zip(bars2, descuento.values):
@@ -532,7 +512,6 @@ elif seccion == "📝 Observaciones":
 
     st.divider()
 
-    # ── Recomendación final ──────────────────────────────────
     st.subheader("🏆 Recomendación de inversión")
 
     col3, col4, col5 = st.columns(3)
@@ -567,7 +546,7 @@ elif seccion == "📝 Observaciones":
     st.divider()
 
     st.markdown("""
-    En conclusión, **Miguel Hidalgo** es la alcaldía más recomendable para invertir 
+    En conclusión, **Miguel Hidalgo** es el lugar más recomendable para invertir 
     en compra-venta de inmuebles por su combinación de alto volumen de oportunidades, 
     buena plusvalía y descuento promedio competitivo. Para inversores con menor 
     capital disponible, **Iztapalapa** representa una alternativa viable con buena 
@@ -583,7 +562,7 @@ elif seccion == "🔮 Predicciones":
     col1, col2 = st.columns(2)
 
     with col1:
-        alcaldia = st.selectbox("Alcaldía", options=sorted(le_places.classes_))
+        lugar = st.selectbox("Lugar en CDMX", options=sorted(le_places.classes_))
         tipo = st.selectbox("Tipo de inmueble", options=sorted(le_type.classes_))
 
     with col2:
@@ -593,10 +572,10 @@ elif seccion == "🔮 Predicciones":
     st.divider()
 
     if st.button("Estimar precio", use_container_width=True):
-        alcaldia_enc = le_places.transform([alcaldia])[0]
+        lugar_enc = le_places.transform([lugar])[0]
         tipo_enc = le_type.transform([tipo])[0]
 
-        X_pred = pd.DataFrame([[metros, precio_m2, alcaldia_enc, tipo_enc]],
+        X_pred = pd.DataFrame([[metros, precio_m2, lugar_enc, tipo_enc]],
                               columns=["surface_covered_in_m2", "price_per_m2", "places_enc", "type_enc"])
 
         precio_estimado = dt.predict(X_pred)[0]
@@ -615,21 +594,20 @@ elif seccion == "🔮 Predicciones":
 
         st.divider()
 
-        # Comparar con el promedio de la alcaldía
-        promedio_alcaldia = df_clean[df_clean["places"] == alcaldia]["price"].mean()
-        diferencia = precio_estimado - promedio_alcaldia
-        diferencia_pct = (diferencia / promedio_alcaldia) * 100
+        promedio_lugar = df_clean[df_clean["places"] == lugar]["price"].mean()
+        diferencia = precio_estimado - promedio_lugar
+        diferencia_pct = (diferencia / promedio_lugar) * 100
 
         st.markdown("#### Comparación con el mercado")
         col6, col7 = st.columns(2)
         with col6:
             st.metric(
-                f"Promedio en {alcaldia}",
-                f"${promedio_alcaldia:,.0f} MXN",
+                f"Promedio en {lugar}",
+                f"${promedio_lugar:,.0f} MXN",
                 delta=f"{diferencia_pct:.1f}% vs estimado"
             )
         with col7:
             if diferencia < 0:
-                st.success(f"✅ El precio estimado está **${abs(diferencia):,.0f} MXN por debajo** del promedio de {alcaldia} — posible oportunidad de inversión.")
+                st.success(f"✅ El precio estimado está **${abs(diferencia):,.0f} MXN por debajo** del promedio de {lugar} — posible oportunidad de inversión.")
             else:
-                st.warning(f"⚠️ El precio estimado está **${diferencia:,.0f} MXN por encima** del promedio de {alcaldia}.")
+                st.warning(f"⚠️ El precio estimado está **${diferencia:,.0f} MXN por encima** del promedio de {lugar}.")
