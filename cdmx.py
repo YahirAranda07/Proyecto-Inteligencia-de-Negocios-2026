@@ -158,7 +158,7 @@ elif seccion == "📊 Gráficas":
     ax5.set_xlabel("Precio (MXN)", fontsize=12)
     ax5.set_ylabel("Número de propiedades", fontsize=12)
     ax5.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x:,.0f}"))
-    ax5.set_xlim(0, df_clean["price"].quantile(0.75))
+    ax5.set_xlim(0, df_clean["price"].quantile(0.95))
     plt.tight_layout()
     st.pyplot(fig5)
 
