@@ -150,13 +150,15 @@ elif seccion == "📊 Gráficas":
 
     st.divider()
 
+    # Gráfica 5 — Histograma precios
     st.subheader("Distribución de precios")
     fig5, ax5 = plt.subplots(figsize=(14, 5))
-    ax5.hist(df_clean["prices"], bins=50, color="steelblue", edgecolor="white")
+    ax5.hist(df_clean["price"], bins=50, color="steelblue", edgecolor="white")
     ax5.set_title("Distribución de precios - CDMX", fontsize=14)
-    ax5.set_xlabel("precio", fontsize=12)
+    ax5.set_xlabel("Precio (MXN)", fontsize=12)
     ax5.set_ylabel("Número de propiedades", fontsize=12)
-    ax5.set_xlim(0, df_clean["surface_covered_in_m2"].quantile(0.99))
+    ax5.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x:,.0f}"))
+    ax5.set_xlim(0, df_clean["price"].quantile(0.99))
     plt.tight_layout()
     st.pyplot(fig5)
 
