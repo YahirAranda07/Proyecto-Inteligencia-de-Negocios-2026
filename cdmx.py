@@ -126,7 +126,7 @@ elif seccion == "📊 Gráficas":
     df_filtrado["places"] = pd.Categorical(df_filtrado["places"], categories=orden, ordered=True)
     df_filtrado = df_filtrado.sort_values("places")
     fig2, ax2 = plt.subplots(figsize=(14, 5))
-    df_filtrado.boxplot(column="price", by="places", ax=ax2, showfliers=False)
+    df_filtrado.boxplot(column="price", by="places", ax=ax2)
     ax2.set_xlabel("Lugar en CDMX")
     ax2.set_ylabel("Precio (MXN)")
     ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x:,.0f}"))
