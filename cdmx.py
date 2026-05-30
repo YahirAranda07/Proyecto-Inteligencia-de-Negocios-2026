@@ -14,6 +14,7 @@ st.set_page_config(
     layout="wide"
 )
 
+
 # ── Cargar datos y modelo ────────────────────────────────────
 @st.cache_data
 def cargar_datos():
