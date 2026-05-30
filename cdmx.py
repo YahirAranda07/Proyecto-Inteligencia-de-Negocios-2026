@@ -15,8 +15,6 @@ st.set_page_config(
 )
 
 
-
-
 # ── Cargar datos y modelo ────────────────────────────────────
 @st.cache_data
 def cargar_datos():
