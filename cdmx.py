@@ -360,14 +360,15 @@ elif seccion == "🤖 Modelo ML":
     st.subheader("1. Correlación de variables con el precio")
     st.markdown("Antes de entrenar el modelo analizamos qué variables tienen mayor relación con el precio.")
 
-    columnas = ["price", "surface_covered_in_m2", "price_per_m2", "price_usd_per_m2"]
+    columnas = ["price", "surface_covered_in_m2", "price_per_m2", "price_usd_per_m2",
+                "price_aprox_local_currency", "price_aprox_usd", "surface_total_in_m2"]
     correlaciones = df_clean[columnas].corr()
 
     col1, col2 = st.columns([1, 1])
     with col1:
-        fig_corr, ax_corr = plt.subplots(figsize=(6, 4))
+        fig_corr, ax_corr = plt.subplots(figsize=(7, 6))
         sns.heatmap(correlaciones, annot=True, fmt=".2f", cmap="coolwarm",
-                    center=0, ax=ax_corr, linewidths=0.5)
+                    center=0, ax=ax_corr, linewidths=0.5, linecolor="white")
         ax_corr.set_title("Mapa de correlaciones")
         plt.tight_layout()
         st.pyplot(fig_corr)
@@ -377,8 +378,9 @@ elif seccion == "🤖 Modelo ML":
         st.markdown("""
         - **price_per_m²** tiene la mayor correlación con el precio **(0.55)**
         - **surface_covered_in_m²** tiene correlación moderada **(0.50)**
-        - Ambas variables fueron incluidas en el modelo
-        - Las correlaciones mejoraron al limpiar outliers del dataset
+        - `price_aprox_local_currency` y `price_aprox_usd` tienen correlación de **1.0** entre sí — son la misma variable en diferente moneda
+        - `surface_total_in_m2` tiene correlación muy baja **(0.11)** — no aporta al modelo
+        - Las variables seleccionadas para el modelo fueron `price_per_m2` y `surface_covered_in_m2`
         """)
 
     st.divider()
@@ -395,9 +397,9 @@ elif seccion == "🤖 Modelo ML":
 
     with col4:
         st.markdown("#### 🌳 Árbol de Decisión")
-        st.metric("R²", "0.9265", delta=None)
-        st.metric("MAE", "$267,296 MXN", delta=None)
-        st.success("Explica el 93% de la variación en precios. Error promedio de $267k pesos.")
+        st.metric("R²", "0.8887", delta=None)
+        st.metric("MAE", "$456,307 MXN", delta=None)
+        st.success("Explica el 89% de la variación en precios. Error promedio de $456k pesos.")
 
     st.divider()
 
@@ -423,7 +425,7 @@ elif seccion == "🤖 Modelo ML":
         fig_dt, ax_dt = plt.subplots(figsize=(6, 5))
         ax_dt.scatter(y_test, y_pred_dt, alpha=0.3, s=10, color="steelblue")
         ax_dt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], color="red", linewidth=1.5)
-        ax_dt.set_title("Árbol de Decisión")
+        ax_dt.set_title("Árbol de Decisión (depth=6)")
         ax_dt.set_xlabel("Precio real (MXN)")
         ax_dt.set_ylabel("Precio predicho (MXN)")
         ax_dt.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x/1e6:.1f}M"))
@@ -451,9 +453,9 @@ elif seccion == "🤖 Modelo ML":
 
     st.markdown("""
     Para que el modelo no memorizara los datos sino que aprendiera patrones reales, 
-    se limitó su complejidad: máximo 8 niveles de profundidad, mínimo 20 propiedades 
-    para hacer una división y mínimo 10 propiedades en cada grupo final. Gracias a 
-    estos ajustes el modelo logró un **R² de 0.93**, es decir, explica el **93% de la 
+    se limitó su complejidad: máximo 6 niveles de profundidad, mínimo 100 propiedades 
+    para hacer una división y mínimo 50 propiedades en cada grupo final. Gracias a 
+    estos ajustes el modelo logró un **R² de 0.89**, es decir, explica el **89% de la 
     variación en precios** del mercado inmobiliario de la CDMX.
     """)
 
@@ -465,7 +467,6 @@ elif seccion == "🤖 Modelo ML":
     | `places` | Lugar en CDMX | Cualitativa nominal |
     | `property_type` | Tipo de inmueble | Cualitativa nominal |
     """)
-
 elif seccion == "📝 Observaciones":
     st.title("📝 Observaciones")
 
