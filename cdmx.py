@@ -6,7 +6,7 @@ import folium
 import requests
 import joblib
 from streamlit_folium import st_folium
-
+ 
 # ── Configuración de la página ──────────────────────────────
 st.set_page_config(
     page_title="Inversión Inmobiliaria CDMX",
