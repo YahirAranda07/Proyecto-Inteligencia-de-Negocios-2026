@@ -17,7 +17,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# Opción 2 — Quitarla
 st.markdown("""
     <style>
     div[role="radiogroup"] label p {
