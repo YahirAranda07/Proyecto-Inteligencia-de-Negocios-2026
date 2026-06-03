@@ -5,8 +5,11 @@ import seaborn as sns
 import folium
 import requests
 import joblib
+import os
 from streamlit_folium import st_folium
- 
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+
 # ── Configuración de la página ──────────────────────────────
 st.set_page_config(
     page_title="Inversión Inmobiliaria CDMX",
@@ -14,11 +17,11 @@ st.set_page_config(
     layout="wide"
 )
 
-
 # ── Cargar datos y modelo ────────────────────────────────────
 @st.cache_data
 def cargar_datos():
-    df = pd.read_csv("housing_data_CDMX.csv")
+    base = os.path.dirname(__file__)
+    df = pd.read_csv(os.path.join(base, "housing_data_CDMX.csv"))
     df = df[~df["property_type"].isin(["store", "PH"])]
     df[["lat", "lon"]] = (
         df["lat-lon"]
@@ -37,13 +40,47 @@ def cargar_datos():
 
 @st.cache_resource
 def cargar_modelo():
-    dt = joblib.load("modelo_arbol.pkl")
-    le_places = joblib.load("encoder_places.pkl")
-    le_type = joblib.load("encoder_type.pkl")
+    base = os.path.dirname(__file__)
+    dt = joblib.load(os.path.join(base, "modelo_arbol.pkl"))
+    le_places = joblib.load(os.path.join(base, "encoder_places.pkl"))
+    le_type = joblib.load(os.path.join(base, "encoder_type.pkl"))
     return dt, le_places, le_type
 
+@st.cache_data
+def calcular_oportunidades(_dt, _le_places, _le_type, _df_clean):
+    df_model2 = _df_clean[["price", "surface_covered_in_m2", "price_per_m2", "places", "property_type"]].dropna().copy()
+    df_model2["places_enc"] = _le_places.transform(df_model2["places"])
+    df_model2["type_enc"] = _le_type.transform(df_model2["property_type"])
+    X_all = df_model2[["surface_covered_in_m2", "price_per_m2", "places_enc", "type_enc"]]
+    df_model2["precio_predicho"] = _dt.predict(X_all)
+    df_model2["diferencia_pct"] = ((df_model2["price"] - df_model2["precio_predicho"]) / df_model2["precio_predicho"]) * 100
+    return df_model2
+
+@st.cache_data
+def calcular_modelos(_df_clean, _le_places, _le_type, _dt):
+    df_model = _df_clean[["price", "surface_covered_in_m2", "price_per_m2", "places", "property_type"]].dropna().copy()
+    df_model["places_enc"] = _le_places.transform(df_model["places"])
+    df_model["type_enc"] = _le_type.transform(df_model["property_type"])
+    X = df_model[["surface_covered_in_m2", "price_per_m2", "places_enc", "type_enc"]]
+    y = df_model["price"]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    lr = LinearRegression()
+    lr.fit(X_train, y_train)
+    y_pred_lr = lr.predict(X_test)
+    y_pred_dt = _dt.predict(X_test)
+    return y_test, y_pred_lr, y_pred_dt
+
+@st.cache_data
+def cargar_geojson():
+    cdmx_url = "https://raw.githubusercontent.com/edavgaun/GeoJson/refs/heads/main/CDMX/alcaldias.geojson"
+    return requests.get(cdmx_url).json()
+
+# ── Precalcular todo al inicio ───────────────────────────────
 df, df_clean = cargar_datos()
 dt, le_places, le_type = cargar_modelo()
+df_model2 = calcular_oportunidades(dt, le_places, le_type, df_clean)
+y_test, y_pred_lr, y_pred_dt = calcular_modelos(df_clean, le_places, le_type, dt)
+cdmx_geojson = cargar_geojson()
 
 # ── Navegación lateral ───────────────────────────────────────
 st.sidebar.title("🏠 Inversión Inmobiliaria CDMX")
@@ -77,12 +114,12 @@ elif seccion == "📊 Gráficas":
 
     st.divider()
 
+    # Gráfica 1 — Pastel y barras
     st.subheader("Distribución por tipo de inmueble y lugar en CDMX")
     conteo_tipo = df_filtrado["property_type"].value_counts()
     conteo_places = df_filtrado["places"].value_counts().sort_values()
 
     col1, col2 = st.columns(2)
-
     with col1:
         fig4, ax4 = plt.subplots(figsize=(5, 5))
         ax4.pie(
@@ -98,16 +135,17 @@ elif seccion == "📊 Gráficas":
         st.pyplot(fig4)
 
     with col2:
-        fig5, ax5 = plt.subplots(figsize=(5, 5))
-        conteo_places.plot(kind="barh", ax=ax5, color="steelblue", edgecolor="white")
-        ax5.set_title("Propiedades por lugar en CDMX")
-        ax5.set_xlabel("Número de propiedades")
-        ax5.set_ylabel("")
+        fig_bar, ax_bar = plt.subplots(figsize=(5, 5))
+        conteo_places.plot(kind="barh", ax=ax_bar, color="steelblue", edgecolor="white")
+        ax_bar.set_title("Propiedades por lugar en CDMX")
+        ax_bar.set_xlabel("Número de propiedades")
+        ax_bar.set_ylabel("")
         plt.tight_layout()
-        st.pyplot(fig5)
+        st.pyplot(fig_bar)
 
     st.divider()
 
+    # Gráfica 2 — Precio promedio
     st.subheader("Precio promedio por lugar en CDMX")
     promedio = df_filtrado.groupby("places")["price"].mean().sort_values(ascending=False)
     fig1, ax1 = plt.subplots(figsize=(14, 5))
@@ -121,6 +159,7 @@ elif seccion == "📊 Gráficas":
 
     st.divider()
 
+    # Gráfica 3 — Boxplot
     st.subheader("Distribución de precios por lugar en CDMX")
     orden = df_filtrado.groupby("places")["price"].median().sort_values(ascending=False).index
     df_filtrado = df_filtrado.copy()
@@ -138,6 +177,7 @@ elif seccion == "📊 Gráficas":
 
     st.divider()
 
+    # Gráfica 4 — Volumen de oferta
     st.subheader("Volumen de oferta por lugar en CDMX y tipo de inmueble")
     volumen = df_filtrado.groupby(["places", "property_type"]).size().unstack(fill_value=0)
     fig3, ax3 = plt.subplots(figsize=(14, 5))
@@ -159,7 +199,7 @@ elif seccion == "📊 Gráficas":
     ax5.set_xlabel("Precio (MXN)", fontsize=12)
     ax5.set_ylabel("Número de propiedades", fontsize=12)
     ax5.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x:,.0f}"))
-    ax5.set_xlim(0, df_clean["price"].quantile(0.95))
+    ax5.set_xlim(100000, df_clean["price"].quantile(0.99))
     plt.tight_layout()
     st.pyplot(fig5)
 
@@ -177,9 +217,9 @@ elif seccion == "🗺️ Mapa":
                                           options=sorted(df["places"].unique()),
                                           default=sorted(df["places"].unique()))
         with col2:
-            tipo_filtro = st.multiselect("Filtrar por tipo de inmueble",
-                                          options=sorted(df["property_type"].unique()),
-                                          default=sorted(df["property_type"].unique()))
+            tipo_filtro_mapa = st.multiselect("Filtrar por tipo de inmueble",
+                                              options=sorted(df["property_type"].unique()),
+                                              default=sorted(df["property_type"].unique()))
 
         precio_min = int(df["price"].quantile(0.01))
         precio_max = int(df["price"].quantile(0.99))
@@ -194,7 +234,7 @@ elif seccion == "🗺️ Mapa":
 
         df_mapa = df[
             (df["places"].isin(lugar_filtro)) &
-            (df["property_type"].isin(tipo_filtro)) &
+            (df["property_type"].isin(tipo_filtro_mapa)) &
             (df["price"] >= rango_precio[0]) &
             (df["price"] <= rango_precio[1])
         ].dropna(subset=["lat", "lon"])
@@ -202,13 +242,12 @@ elif seccion == "🗺️ Mapa":
         df_mapa_muestra = df_mapa.sample(min(1000, len(df_mapa)), random_state=42)
         st.markdown(f"Mostrando **{len(df_mapa_muestra):,}** de **{len(df_mapa):,}** propiedades")
 
+        import copy
         mapa = folium.Map(location=[df["lat"].mean(), df["lon"].mean()], zoom_start=11)
-
-        cdmx_url = "https://raw.githubusercontent.com/edavgaun/GeoJson/refs/heads/main/CDMX/alcaldias.geojson"
-        cdmx_json = requests.get(cdmx_url).json()
+        geojson_mapa = copy.deepcopy(cdmx_geojson)
 
         folium.GeoJson(
-            cdmx_json,
+            geojson_mapa,
             style_function=lambda x: {"fillColor": "lightblue", "color": "gray", "weight": 1.5, "fillOpacity": 0.2},
             tooltip=folium.GeoJsonTooltip(fields=["nomgeo"], aliases=["Lugar en CDMX:"])
         ).add_to(mapa)
@@ -248,9 +287,10 @@ elif seccion == "🗺️ Mapa":
         plusvalia = df_clean.groupby("places")["price"].median().reset_index()
         plusvalia.columns = ["places", "precio_mediano"]
 
-        cdmx_json2 = requests.get(cdmx_url).json()
+        import copy
+        geojson_plusvalia = copy.deepcopy(cdmx_geojson)
 
-        for feature in cdmx_json2["features"]:
+        for feature in geojson_plusvalia["features"]:
             nombre_geo = feature["properties"]["nomgeo"]
             nombre_dataset = mapeo.get(nombre_geo, nombre_geo.replace(" ", ""))
             match = plusvalia[plusvalia["places"] == nombre_dataset]
@@ -277,7 +317,7 @@ elif seccion == "🗺️ Mapa":
         mapa_plusvalia = folium.Map(location=[19.43, -99.13], zoom_start=11)
 
         folium.GeoJson(
-            cdmx_json2,
+            geojson_plusvalia,
             style_function=lambda x: {
                 "fillColor": get_color(x["properties"]["precio_mediano"]),
                 "color": "gray",
@@ -304,6 +344,7 @@ elif seccion == "🤖 Modelo ML":
 
     st.divider()
 
+    # Correlaciones
     st.subheader("1. Correlación de variables con el precio")
     st.markdown("Antes de entrenar el modelo analizamos qué variables tienen mayor relación con el precio.")
 
@@ -311,7 +352,6 @@ elif seccion == "🤖 Modelo ML":
     correlaciones = df_clean[columnas].corr()
 
     col1, col2 = st.columns([1, 1])
-
     with col1:
         fig_corr, ax_corr = plt.subplots(figsize=(6, 4))
         sns.heatmap(correlaciones, annot=True, fmt=".2f", cmap="coolwarm",
@@ -331,8 +371,8 @@ elif seccion == "🤖 Modelo ML":
 
     st.divider()
 
+    # Métricas
     st.subheader("2. Comparación de modelos")
-
     col3, col4 = st.columns(2)
 
     with col3:
@@ -349,26 +389,9 @@ elif seccion == "🤖 Modelo ML":
 
     st.divider()
 
+    # Gráficas Real vs Predicho
     st.subheader("3. Real vs Predicho — Comparación visual")
     st.markdown("Entre más cerca estén los puntos de la línea roja, mejor es el modelo.")
-
-    from sklearn.linear_model import LinearRegression
-    from sklearn.tree import DecisionTreeRegressor
-    from sklearn.model_selection import train_test_split
-    from sklearn.preprocessing import LabelEncoder
-
-    df_model = df_clean[["price", "surface_covered_in_m2", "price_per_m2", "places", "property_type"]].dropna().copy()
-    df_model["places_enc"] = le_places.transform(df_model["places"])
-    df_model["type_enc"] = le_type.transform(df_model["property_type"])
-
-    X = df_model[["surface_covered_in_m2", "price_per_m2", "places_enc", "type_enc"]]
-    y = df_model["price"]
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    lr = LinearRegression()
-    lr.fit(X_train, y_train)
-    y_pred_lr = lr.predict(X_test)
-    y_pred_dt = dt.predict(X_test)
 
     col5, col6 = st.columns(2)
 
@@ -398,6 +421,7 @@ elif seccion == "🤖 Modelo ML":
 
     st.divider()
 
+    # Conclusión
     st.subheader("4. ¿Por qué el Árbol de Decisión?")
     st.markdown("""
     El Árbol de Decisión fue el modelo ganador porque el precio de un inmueble 
@@ -467,13 +491,6 @@ elif seccion == "📝 Observaciones":
 
     st.subheader("💰 Oportunidades de inversión")
     st.markdown("Propiedades cuyo precio real está entre 10% y 40% por debajo del valor estimado por el modelo.")
-
-    df_model2 = df_clean[["price", "surface_covered_in_m2", "price_per_m2", "places", "property_type"]].dropna().copy()
-    df_model2["places_enc"] = le_places.transform(df_model2["places"])
-    df_model2["type_enc"] = le_type.transform(df_model2["property_type"])
-    X_all = df_model2[["surface_covered_in_m2", "price_per_m2", "places_enc", "type_enc"]]
-    df_model2["precio_predicho"] = dt.predict(X_all)
-    df_model2["diferencia_pct"] = ((df_model2["price"] - df_model2["precio_predicho"]) / df_model2["precio_predicho"]) * 100
 
     oportunidades_reales = df_model2[
         (df_model2["diferencia_pct"] < -10) &
