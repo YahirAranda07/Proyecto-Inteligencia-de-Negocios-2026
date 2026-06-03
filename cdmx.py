@@ -17,6 +17,16 @@ st.set_page_config(
     layout="wide"
 )
 
+st.markdown("""
+    <style>
+    div[role="radiogroup"] label {
+        font-size: 20px !important;
+        font-weight: 600 !important;
+        padding: 8px 0px !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # ── Cargar datos y modelo ────────────────────────────────────
 @st.cache_data
 def cargar_datos():
