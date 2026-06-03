@@ -19,10 +19,9 @@ st.set_page_config(
 
 st.markdown("""
     <style>
-    div[role="radiogroup"] label {
+    div[role="radiogroup"] label p {
         font-size: 20px !important;
         font-weight: 600 !important;
-        padding: 8px 0px !important;
     }
     </style>
 """, unsafe_allow_html=True)
