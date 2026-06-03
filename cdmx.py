@@ -23,7 +23,7 @@ st.markdown("""
         font-size: 20px !important;
         font-weight: 600 !important;
     }
-    .st-emotion-cache-16idsys p {
+    .stRadio > label {
         display: none !important;
     }
     </style>
