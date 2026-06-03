@@ -17,7 +17,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Opción 1 — Más grande
+# Opción 2 — Quitarla
 st.markdown("""
     <style>
     div[role="radiogroup"] label p {
@@ -25,8 +25,7 @@ st.markdown("""
         font-weight: 600 !important;
     }
     .st-emotion-cache-16idsys p {
-        font-size: 20px !important;
-        font-weight: 700 !important;
+        display: none !important;
     }
     </style>
 """, unsafe_allow_html=True)
