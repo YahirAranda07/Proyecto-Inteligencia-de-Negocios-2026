@@ -39,6 +39,7 @@ El mercado inmobiliario de la CDMX es opaco y complejo. Compradores, inversores 
 ---
 
 ## 🗂️ Estructura del proyecto
+```
 📁 proyecto-inteligencia-de-negocios-2026/
 ├── cdmx.py                    # Aplicación principal de Streamlit
 ├── housing_data_CDMX.csv      # Dataset de propiedades
@@ -47,6 +48,7 @@ El mercado inmobiliario de la CDMX es opaco y complejo. Compradores, inversores 
 ├── encoder_type.pkl           # Encoder de tipo de inmueble
 ├── requirements.txt           # Dependencias del proyecto
 └── README.md                  # Documentación del proyecto
+```
 ---
 
 ## 🤖 Modelo de Machine Learning
