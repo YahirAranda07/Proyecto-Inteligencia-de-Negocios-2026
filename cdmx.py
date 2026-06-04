@@ -499,7 +499,7 @@ elif seccion == "📝 Observaciones":
 
     st.subheader("🤖 Modelo de predicción")
     st.markdown("""
-    - El **Árbol de Decisión** fue el modelo más preciso con un R² de 0.93 y un error promedio de $267,296 MXN.
+    - El **Árbol de Decisión** fue el modelo más preciso con un R² de 0.89 y un error promedio de $456,307 MXN.
     - Las variables más importantes para predecir el precio fueron el **precio por m²** y la **superficie cubierta**.
     - El **lugar en CDMX** y el **tipo de inmueble** también tienen un impacto significativo en el precio final.
     """)
@@ -518,8 +518,9 @@ elif seccion == "📝 Observaciones":
     col1, col2 = st.columns(2)
 
     with col1:
-        cantidad = oportunidades_reales.groupby("places").size().sort_values(ascending=False)
-        colores = ["green" if x >= 200 else "steelblue" if x >= 100 else "lightblue" for x in cantidad]
+        cantidad = oportunidades_reales.groupby("places", observed=True).size().sort_values(ascending=False)
+        cantidad = cantidad[cantidad > 0]
+        colores = ["green" if x >= 500 else "steelblue" if x >= 200 else "lightblue" for x in cantidad]
         fig1, ax1 = plt.subplots(figsize=(7, 5))
         bars = ax1.bar(cantidad.index, cantidad.values, color=colores, edgecolor="white")
         ax1.set_title("Cantidad de propiedades subvaluadas por lugar en CDMX", fontsize=11)
@@ -533,7 +534,8 @@ elif seccion == "📝 Observaciones":
         st.pyplot(fig1)
 
     with col2:
-        descuento = oportunidades_reales.groupby("places")["diferencia_pct_pos"].mean().sort_values(ascending=False)
+        descuento = oportunidades_reales.groupby("places", observed=True)["diferencia_pct_pos"].mean().sort_values(ascending=False)
+        descuento = descuento[descuento > 0]
         fig2, ax2 = plt.subplots(figsize=(7, 5))
         bars2 = ax2.bar(descuento.index, descuento.values, color="salmon", edgecolor="white")
         ax2.set_title("% promedio por debajo del valor de mercado", fontsize=11)
@@ -557,37 +559,37 @@ elif seccion == "📝 Observaciones":
         st.success("""
         **Mayor volumen**
         
-        🏆 Miguel Hidalgo
+        🏆 Benito Juárez
         
-        328 propiedades subvaluadas con descuento promedio de 16.5%
+        770 propiedades subvaluadas con descuento promedio de 16.0%
         """)
 
     with col4:
         st.warning("""
         **Mayor descuento**
         
-        🥇 Cuajimalpa
+        🥇 Tláhuac
         
-        86 propiedades con el mayor descuento promedio de 17.8%
+        95 propiedades con el mayor descuento promedio de 22.9%
         """)
 
     with col5:
         st.info("""
-        **Menor capital**
+        **Balance volumen/descuento**
         
         💡 Iztapalapa
         
-        178 propiedades subvaluadas con precios de entrada más accesibles
+        392 propiedades subvaluadas con descuento promedio de 20.8%
         """)
 
     st.divider()
 
     st.markdown("""
-    En conclusión, **Miguel Hidalgo** es el lugar más recomendable para invertir 
-    en compra-venta de inmuebles por su combinación de alto volumen de oportunidades, 
-    buena plusvalía y descuento promedio competitivo. Para inversores con menor 
-    capital disponible, **Iztapalapa** representa una alternativa viable con buena 
-    cantidad de oportunidades a precios accesibles.
+    En conclusión, **Benito Juárez** es el lugar con mayor volumen de oportunidades para invertir 
+    en compra-venta de inmuebles con 770 propiedades subvaluadas. Para inversores que buscan 
+    el mayor margen de ganancia, **Tláhuac** y **Cuajimalpa** ofrecen los mayores descuentos 
+    promedio con 22.9% y 22.2% respectivamente. Para un balance entre volumen y descuento, 
+    **Iztapalapa** representa la mejor alternativa con 392 oportunidades y un descuento promedio de 20.8%.
     """)
 
 elif seccion == "🔮 Predicciones":
