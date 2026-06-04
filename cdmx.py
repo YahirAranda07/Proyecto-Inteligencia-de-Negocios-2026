@@ -258,7 +258,6 @@ elif seccion == "🗺️ Mapa":
         df_mapa_muestra = df_mapa.sample(min(1000, len(df_mapa)), random_state=42)
         st.markdown(f"Mostrando **{len(df_mapa_muestra):,}** de **{len(df_mapa):,}** propiedades")
 
-        import copy
         mapa = folium.Map(location=[df["lat"].mean(), df["lon"].mean()], zoom_start=11)
         geojson_mapa = copy.deepcopy(cdmx_geojson)
 
@@ -287,7 +286,7 @@ elif seccion == "🗺️ Mapa":
         st_folium(mapa, width=1200, height=500)
 
     with tab2:
-        st.markdown("Lugares en CDMX coloreados por precio mediano de las propiedades. Rojo indica mayor plusvalía.")
+        st.markdown("Lugares en CDMX coloreados por precio promedio de las propiedades. Rojo indica mayor plusvalía.")
 
         mapeo = {
             "Benito Juárez": "BenitoJuarez",
@@ -300,20 +299,19 @@ elif seccion == "🗺️ Mapa":
             "Tláhuac": "Tlahuac"
         }
 
-        plusvalia = df_clean.groupby("places")["price"].median().reset_index()
-        plusvalia.columns = ["places", "precio_mediano"]
+        plusvalia = df_clean.groupby("places")["price"].mean().reset_index()
+        plusvalia.columns = ["places", "precio_promedio"]
 
-        import copy
         geojson_plusvalia = copy.deepcopy(cdmx_geojson)
 
         for feature in geojson_plusvalia["features"]:
             nombre_geo = feature["properties"]["nomgeo"]
             nombre_dataset = mapeo.get(nombre_geo, nombre_geo.replace(" ", ""))
             match = plusvalia[plusvalia["places"] == nombre_dataset]
-            feature["properties"]["precio_mediano"] = int(match["precio_mediano"].values[0]) if not match.empty else 0
+            feature["properties"]["precio_promedio"] = int(match["precio_promedio"].values[0]) if not match.empty else 0
 
-        precio_max_map = plusvalia["precio_mediano"].max()
-        precio_min_map = plusvalia["precio_mediano"].min()
+        precio_max_map = plusvalia["precio_promedio"].max()
+        precio_min_map = plusvalia["precio_promedio"].min()
 
         def get_color(precio):
             if precio == 0:
@@ -335,14 +333,14 @@ elif seccion == "🗺️ Mapa":
         folium.GeoJson(
             geojson_plusvalia,
             style_function=lambda x: {
-                "fillColor": get_color(x["properties"]["precio_mediano"]),
+                "fillColor": get_color(x["properties"]["precio_promedio"]),
                 "color": "gray",
                 "weight": 1.5,
                 "fillOpacity": 0.7
             },
             tooltip=folium.GeoJsonTooltip(
-                fields=["nomgeo", "precio_mediano"],
-                aliases=["Lugar en CDMX:", "Precio mediano (MXN):"],
+                fields=["nomgeo", "precio_promedio"],
+                aliases=["Lugar en CDMX:", "Precio promedio (MXN):"],
                 localize=True
             )
         ).add_to(mapa_plusvalia)
