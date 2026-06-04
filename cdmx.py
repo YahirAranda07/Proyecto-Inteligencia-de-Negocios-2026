@@ -604,9 +604,35 @@ elif seccion == "🔮 Predicciones":
         lugar = st.selectbox("Lugar en CDMX", options=sorted(le_places.classes_))
         tipo = st.selectbox("Tipo de inmueble", options=sorted(le_type.classes_))
 
+    # Calcular precio promedio por m² del lugar seleccionado
+    precio_m2_promedio = df_clean[df_clean["places"] == lugar]["price_per_m2"].mean()
+    precio_m2_min = int(df_clean[df_clean["places"] == lugar]["price_per_m2"].quantile(0.10))
+    precio_m2_max = int(df_clean[df_clean["places"] == lugar]["price_per_m2"].quantile(0.90))
+
     with col2:
         metros = st.number_input("Superficie cubierta (m²)", min_value=10, max_value=1000, value=80, step=5)
-        precio_m2 = st.number_input("Precio por m² (MXN)", min_value=1000, max_value=100000, value=20000, step=500)
+        precio_m2 = st.number_input(
+            f"Precio por m² en {lugar} (MXN)",
+            min_value=1000,
+            max_value=200000,
+            value=int(precio_m2_promedio),
+            step=500,
+            help=f"Rango típico en {lugar}: ${precio_m2_min:,} — ${precio_m2_max:,} MXN por m²"
+        )
+
+    # Mostrar contexto del lugar seleccionado
+    st.divider()
+    st.markdown(f"#### 📍 Referencia del mercado en {lugar}")
+
+    col_ref1, col_ref2, col_ref3 = st.columns(3)
+    with col_ref1:
+        st.metric("Precio por m² promedio", f"${precio_m2_promedio:,.0f} MXN")
+    with col_ref2:
+        st.metric("Rango típico mínimo (10%)", f"${precio_m2_min:,} MXN")
+    with col_ref3:
+        st.metric("Rango típico máximo (90%)", f"${precio_m2_max:,} MXN")
+
+    st.caption("ℹ️ El precio por m² se actualiza automáticamente según el lugar seleccionado. Puedes ajustarlo manualmente si tienes un valor específico.")
 
     st.divider()
 
@@ -641,7 +667,7 @@ elif seccion == "🔮 Predicciones":
         col6, col7 = st.columns(2)
         with col6:
             st.metric(
-                f"Promedio en {lugar}",
+                f"Precio promedio en {lugar}",
                 f"${promedio_lugar:,.0f} MXN",
                 delta=f"{diferencia_pct:.1f}% vs estimado"
             )
