@@ -6,8 +6,10 @@ import folium
 import requests
 import joblib
 import os
+import copy
 from streamlit_folium import st_folium
 from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeRegressor
 from sklearn.model_selection import train_test_split
 
 # ── Configuración de la página ──────────────────────────────
@@ -79,7 +81,9 @@ def calcular_modelos(_df_clean, _le_places, _le_type, _dt):
     lr = LinearRegression()
     lr.fit(X_train, y_train)
     y_pred_lr = lr.predict(X_test)
-    y_pred_dt = _dt.predict(X_test)
+    dt_local = DecisionTreeRegressor(max_depth=6, min_samples_split=100, min_samples_leaf=50, random_state=42)
+    dt_local.fit(X_train, y_train)
+    y_pred_dt = dt_local.predict(X_test)
     return y_test, y_pred_lr, y_pred_dt
 
 @st.cache_data
