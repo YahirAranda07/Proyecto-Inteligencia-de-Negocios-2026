@@ -111,14 +111,108 @@ seccion = st.sidebar.radio("Navegación", [
 
 # ── Secciones ────────────────────────────────────────────────
 if seccion == "🏠 Inicio":
-    st.title("Análisis del Mercado Inmobiliario - CDMX")
-    st.markdown("### ¿En qué lugar en CDMX conviene más invertir para compra-venta de inmuebles?")
-    st.write("Usa el menú lateral para navegar entre las secciones del análisis.")
+    st.title("🏠 Análisis del Mercado Inmobiliario - CDMX")
 
-    col1, col2, col3 = st.columns(3)
+    st.markdown("""
+    ## ¿En qué lugar en CDMX conviene más invertir para compra-venta de inmuebles?
+    """)
+
+    st.divider()
+
+    # Contexto del problema
+    st.subheader("📌 Contexto")
+    st.markdown("""
+    El mercado inmobiliario de la Ciudad de México es uno de los más dinámicos y complejos de 
+    América Latina. Sin embargo, también es uno de los más **opacos** — compradores, inversores 
+    y agentes inmobiliarios carecen de herramientas accesibles para responder preguntas clave:
+
+    - ¿El precio que me están pidiendo es justo para esa zona?
+    - ¿Existe alguna propiedad subvaluada que represente una oportunidad real?
+    - ¿En qué alcaldía se concentra la mayor plusvalía?
+    - ¿Qué factores determinan realmente el precio de un inmueble?
+
+    Esta falta de información genera **asimetría** entre vendedores y compradores, 
+    lo que puede resultar en decisiones de inversión poco informadas o en pérdidas económicas significativas.
+    """)
+
+    st.divider()
+
+    # Objetivo
+    st.subheader("🎯 Objetivo")
+    st.markdown("""
+    Este tablero tiene como finalidad **democratizar el acceso a información del mercado inmobiliario** 
+    de la CDMX mediante el análisis de datos y Machine Learning. A través de este análisis buscamos:
+
+    - Identificar los **factores clave** que determinan el precio de un inmueble
+    - Detectar **propiedades subvaluadas** que representen oportunidades de inversión
+    - Visualizar la **distribución geográfica** de precios y plusvalía por alcaldía
+    - Proveer una herramienta de **predicción de precios** basada en datos reales
+    """)
+
+    st.divider()
+
+    # Métricas generales
+    st.subheader("📊 Resumen del dataset")
+
+    col1, col2, col3, col4 = st.columns(4)
     col1.metric("Total propiedades", f"{len(df):,}")
-    col2.metric("Lugares en CDMX analizados", df["places"].nunique())
+    col2.metric("Lugares en CDMX", df["places"].nunique())
     col3.metric("Precio mediano", f"${df_clean['price'].median():,.0f} MXN")
+    col4.metric("Precio promedio", f"${df_clean['price'].mean():,.0f} MXN")
+
+    st.divider()
+
+    # Qué encontrarás
+    st.subheader("🗂️ ¿Qué encontrarás en este tablero?")
+
+    col5, col6, col7 = st.columns(3)
+
+    with col5:
+        st.info("""
+        **📊 Gráficas**
+        
+        Visualizaciones del mercado inmobiliario — distribución de precios, volumen de oferta 
+        por alcaldía y tipo de inmueble.
+        """)
+        st.info("""
+        **🗺️ Mapa**
+        
+        Mapa interactivo con la ubicación de propiedades y un mapa de calor de plusvalía 
+        por alcaldía.
+        """)
+
+    with col6:
+        st.info("""
+        **🤖 Modelo ML**
+        
+        Comparación entre Regresión Lineal y Árbol de Decisión para predecir precios 
+        con un R² de 0.89.
+        """)
+        st.info("""
+        **📝 Observaciones**
+        
+        Hallazgos principales del análisis y recomendaciones de inversión por alcaldía 
+        basadas en datos.
+        """)
+
+    with col7:
+        st.info("""
+        **🔮 Predicciones**
+        
+        Herramienta interactiva para estimar el precio de cualquier inmueble según 
+        sus características y compararlo con el mercado.
+        """)
+
+    st.divider()
+
+    # Nota metodológica
+    st.subheader("📋 Nota metodológica")
+    st.markdown("""
+    - El dataset contiene **{:,} propiedades** después de eliminar tipos de inmueble no relevantes (locales comerciales y PH).
+    - Se removieron outliers extremos (percentil 1-99) para garantizar análisis más representativos.
+    - El modelo de Machine Learning fue entrenado con el **80% de los datos** y evaluado con el **20% restante**.
+    - Las oportunidades de inversión se definen como propiedades cuyo precio real está entre **10% y 40% por debajo** del valor estimado por el modelo.
+    """.format(len(df)))
 
 elif seccion == "📊 Gráficas":
     st.title("📊 Gráficas")
