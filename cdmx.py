@@ -111,11 +111,7 @@ seccion = st.sidebar.radio("Navegación", [
 
 # ── Secciones ────────────────────────────────────────────────
 if seccion == "🏠 Inicio":
-    st.title("🏠 Análisis del Mercado Inmobiliario - CDMX")
-
-    st.markdown("""
-    ## ¿Donde conviene obtener propiedad en CDMX ?
-    """)
+    st.title("🏠 Análisis de Propiedades - CDMX")
 
     st.divider()
 
