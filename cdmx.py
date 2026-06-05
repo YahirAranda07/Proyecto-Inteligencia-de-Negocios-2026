@@ -114,29 +114,11 @@ if seccion == "🏠 Inicio":
     st.title("🏠 Análisis del Mercado Inmobiliario - CDMX")
 
     st.markdown("""
-    ## ¿En qué lugar en CDMX conviene más invertir para compra-venta de inmuebles?
+    ## ¿Donde conviene obtener propiedad en CDMX ?
     """)
 
     st.divider()
 
-    # Contexto del problema
-    st.subheader("📌 Contexto")
-    st.markdown("""
-    Tienes entre 25 y 30 años, estás saliendo de la carrera o llevas pocos años trabajando 
-    y por primera vez estás pensando en serio en comprar una propiedad en la CDMX. 
-    El problema es que no sabes por dónde empezar.
-
-    Buscas en portales inmobiliarios y ves precios que van desde $800,000 hasta $15,000,000 MXN 
-    en la misma alcaldía, sin entender por qué. Alguien te dice que en Benito Juárez está todo 
-    caro, otro que en Iztapalapa hay oportunidades, y tu banco te aprueba un crédito que no 
-    alcanza para lo que imaginabas.
-
-    El mercado inmobiliario de la CDMX tiene un problema real: **la información está fragmentada, 
-    es difícil de interpretar y favorece siempre al vendedor**. Quienes más pierden son los 
-    compradores jóvenes que no tienen experiencia negociando ni acceso a datos del mercado.
-    """)
-
-    st.divider()
 
     # Objetivo
     st.subheader("🎯 ¿Para qué sirve este tablero?")
