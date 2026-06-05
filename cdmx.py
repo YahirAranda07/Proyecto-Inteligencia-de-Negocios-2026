@@ -120,19 +120,37 @@ if seccion == "🏠 Inicio":
     st.divider()
 
     # Contexto del problema
-    st.subheader("📌 Contexto")
+st.subheader("📌 Contexto")
     st.markdown("""
-    El mercado inmobiliario de la Ciudad de México es uno de los más dinámicos y complejos de 
-    América Latina. Sin embargo, también es uno de los más **opacos** — compradores, inversores 
-    y agentes inmobiliarios carecen de herramientas accesibles para responder preguntas clave:
+    Tienes entre 25 y 30 años, estás saliendo de la carrera o llevas pocos años trabajando 
+    y por primera vez estás pensando en serio en comprar una propiedad en la CDMX. 
+    El problema es que no sabes por dónde empezar.
 
-    - ¿El precio que me están pidiendo es justo para esa zona?
-    - ¿Existe alguna propiedad subvaluada que represente una oportunidad real?
-    - ¿En qué alcaldía se concentra la mayor plusvalía?
-    - ¿Qué factores determinan realmente el precio de un inmueble?
+    Buscas en portales inmobiliarios y ves precios que van desde $800,000 hasta $15,000,000 MXN 
+    en la misma alcaldía, sin entender por qué. Alguien te dice que en Benito Juárez está todo 
+    caro, otro que en Iztapalapa hay oportunidades, y tu banco te aprueba un crédito que no 
+    alcanza para lo que imaginabas.
 
-    Esta falta de información genera **asimetría** entre vendedores y compradores, 
-    lo que puede resultar en decisiones de inversión poco informadas o en pérdidas económicas significativas.
+    El mercado inmobiliario de la CDMX tiene un problema real: **la información está fragmentada, 
+    es difícil de interpretar y favorece siempre al vendedor**. Quienes más pierden son los 
+    compradores jóvenes que no tienen experiencia negociando ni acceso a datos del mercado.
+    """)
+
+    st.divider()
+
+    st.subheader("🎯 ¿Para qué sirve este tablero?")
+    st.markdown("""
+    Este tablero nació para responder las preguntas que cualquier joven comprador se hace 
+    antes de tomar la decisión más importante de su vida financiera:
+
+    - **¿El precio que me están pidiendo es justo?** — o me están cobrando de más por la zona
+    - **¿Dónde me conviene más invertir** con el presupuesto que tengo?
+    - **¿Qué tan caro es el m²** en la alcaldía que me interesa comparado con las demás?
+    - **¿Existe alguna propiedad subvaluada** que nadie más ha detectado?
+
+    Usando datos reales del mercado y un modelo de Machine Learning, este tablero te da 
+    una ventaja que antes solo tenían los desarrolladores y agentes inmobiliarios con años 
+    de experiencia.
     """)
 
     st.divider()
