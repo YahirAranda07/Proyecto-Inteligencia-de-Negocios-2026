@@ -162,12 +162,40 @@ if seccion == "🏠 Inicio":
 
     st.divider()
 
+    # Métricas por tipo de inmueble
+    st.subheader("🏠 Precios por tipo de inmueble")
+
+    df_apt = df_clean[df_clean["property_type"] == "apartment"]
+    df_house = df_clean[df_clean["property_type"] == "house"]
+
+    col5, col6, col7, col8 = st.columns(4)
+    with col5:
+        st.metric("Departamentos — Total", f"{len(df_apt):,}")
+    with col6:
+        st.metric("Departamentos — Mediana", f"${df_apt['price'].median():,.0f} MXN")
+    with col7:
+        st.metric("Casas — Total", f"{len(df_house):,}")
+    with col8:
+        st.metric("Casas — Mediana", f"${df_house['price'].median():,.0f} MXN")
+
+    col9, col10, col11, col12 = st.columns(4)
+    with col9:
+        st.metric("Depto — Precio promedio", f"${df_apt['price'].mean():,.0f} MXN")
+    with col10:
+        st.metric("Depto — Precio por m²", f"${df_apt['price_per_m2'].mean():,.0f} MXN")
+    with col11:
+        st.metric("Casa — Precio promedio", f"${df_house['price'].mean():,.0f} MXN")
+    with col12:
+        st.metric("Casa — Precio por m²", f"${df_house['price_per_m2'].mean():,.0f} MXN")
+
+    st.divider()
+
     # Qué encontrarás
     st.subheader("🗂️ ¿Qué encontrarás en este tablero?")
 
-    col5, col6, col7 = st.columns(3)
+    col13, col14, col15 = st.columns(3)
 
-    with col5:
+    with col13:
         st.info("""
         **📊 Gráficas**
         
@@ -181,7 +209,7 @@ if seccion == "🏠 Inicio":
         por alcaldía.
         """)
 
-    with col6:
+    with col14:
         st.info("""
         **🤖 Modelo ML**
         
@@ -195,7 +223,7 @@ if seccion == "🏠 Inicio":
         basadas en datos.
         """)
 
-    with col7:
+    with col15:
         st.info("""
         **🔮 Predicciones**
         
@@ -213,7 +241,6 @@ if seccion == "🏠 Inicio":
     - El modelo de Machine Learning fue entrenado con el **80% de los datos** y evaluado con el **20% restante**.
     - Las oportunidades de inversión se definen como propiedades cuyo precio real está entre **10% y 40% por debajo** del valor estimado por el modelo.
     """.format(len(df)))
-
 elif seccion == "📊 Gráficas":
     st.title("📊 Gráficas")
 
