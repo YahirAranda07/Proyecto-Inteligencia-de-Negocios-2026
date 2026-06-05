@@ -252,53 +252,7 @@ elif seccion == "📊 Gráficas":
         ax_bar.set_ylabel("")
         plt.tight_layout()
         st.pyplot(fig_bar)
-
-    st.divider()
-
-    # Gráfica 2 — Precio promedio
-    st.subheader("Precio promedio por lugar en CDMX")
-    promedio = df_filtrado.groupby("places")["price"].mean().sort_values(ascending=False)
-    fig1, ax1 = plt.subplots(figsize=(14, 5))
-    promedio.plot(kind="bar", ax=ax1, color="steelblue", edgecolor="white")
-    ax1.set_xlabel("Lugar en CDMX")
-    ax1.set_ylabel("Precio promedio (MXN)")
-    ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x:,.0f}"))
-    plt.xticks(rotation=45, ha="right")
-    plt.tight_layout()
-    st.pyplot(fig1)
-
-    st.divider()
-
-    # Gráfica 3 — Boxplot
-    st.subheader("Distribución de precios por lugar en CDMX")
-    orden = df_filtrado.groupby("places")["price"].median().sort_values(ascending=False).index
-    df_filtrado = df_filtrado.copy()
-    df_filtrado["places"] = pd.Categorical(df_filtrado["places"], categories=orden, ordered=True)
-    df_filtrado = df_filtrado.sort_values("places")
-    fig2, ax2 = plt.subplots(figsize=(14, 5))
-    df_filtrado.boxplot(column="price", by="places", ax=ax2)
-    ax2.set_xlabel("Lugar en CDMX")
-    ax2.set_ylabel("Precio (MXN)")
-    ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x:,.0f}"))
-    plt.suptitle("")
-    plt.xticks(rotation=45, ha="right")
-    plt.tight_layout()
-    st.pyplot(fig2)
-
-    st.divider()
-
-    # Gráfica 4 — Volumen de oferta
-    st.subheader("Volumen de oferta por lugar en CDMX y tipo de inmueble")
-    volumen = df_filtrado.groupby(["places", "property_type"]).size().unstack(fill_value=0)
-    fig3, ax3 = plt.subplots(figsize=(14, 5))
-    volumen.plot(kind="bar", ax=ax3, edgecolor="white")
-    ax3.set_xlabel("Lugar en CDMX")
-    ax3.set_ylabel("Número de propiedades")
-    ax3.legend(title="Tipo de inmueble")
-    plt.xticks(rotation=45, ha="right")
-    plt.tight_layout()
-    st.pyplot(fig3)
-
+        
     st.divider()
 
     # Gráfica 5 — Histograma precios por tipo de inmueble
@@ -319,6 +273,54 @@ elif seccion == "📊 Gráficas":
     ax5.legend(title="Tipo de inmueble")
     plt.tight_layout()
     st.pyplot(fig5)
+    
+    st.divider()
+
+    # Gráfica 3 — Precio promedio
+    st.subheader("Precio promedio por lugar en CDMX")
+    promedio = df_filtrado.groupby("places")["price"].mean().sort_values(ascending=False)
+    fig1, ax1 = plt.subplots(figsize=(14, 5))
+    promedio.plot(kind="bar", ax=ax1, color="steelblue", edgecolor="white")
+    ax1.set_xlabel("Lugar en CDMX")
+    ax1.set_ylabel("Precio promedio (MXN)")
+    ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x:,.0f}"))
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
+    st.pyplot(fig1)
+
+    st.divider()
+
+    # Gráfica 4 — Boxplot
+    st.subheader("Distribución de precios por lugar en CDMX")
+    orden = df_filtrado.groupby("places")["price"].median().sort_values(ascending=False).index
+    df_filtrado = df_filtrado.copy()
+    df_filtrado["places"] = pd.Categorical(df_filtrado["places"], categories=orden, ordered=True)
+    df_filtrado = df_filtrado.sort_values("places")
+    fig2, ax2 = plt.subplots(figsize=(14, 5))
+    df_filtrado.boxplot(column="price", by="places", ax=ax2)
+    ax2.set_xlabel("Lugar en CDMX")
+    ax2.set_ylabel("Precio (MXN)")
+    ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x:,.0f}"))
+    plt.suptitle("")
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
+    st.pyplot(fig2)
+
+    st.divider()
+
+    # Gráfica 5 — Volumen de oferta
+    st.subheader("Volumen de oferta por lugar en CDMX y tipo de inmueble")
+    volumen = df_filtrado.groupby(["places", "property_type"]).size().unstack(fill_value=0)
+    fig3, ax3 = plt.subplots(figsize=(14, 5))
+    volumen.plot(kind="bar", ax=ax3, edgecolor="white")
+    ax3.set_xlabel("Lugar en CDMX")
+    ax3.set_ylabel("Número de propiedades")
+    ax3.legend(title="Tipo de inmueble")
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
+    st.pyplot(fig3)
+
+
 
 elif seccion == "🗺️ Mapa":
     st.title("🗺️ Mapa")
