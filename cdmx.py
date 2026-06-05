@@ -120,7 +120,7 @@ if seccion == "🏠 Inicio":
     st.divider()
 
     # Contexto del problema
-st.subheader("📌 Contexto")
+    st.subheader("📌 Contexto")
     st.markdown("""
     Tienes entre 25 y 30 años, estás saliendo de la carrera o llevas pocos años trabajando 
     y por primera vez estás pensando en serio en comprar una propiedad en la CDMX. 
@@ -138,6 +138,7 @@ st.subheader("📌 Contexto")
 
     st.divider()
 
+    # Objetivo
     st.subheader("🎯 ¿Para qué sirve este tablero?")
     st.markdown("""
     Este tablero nació para responder las preguntas que cualquier joven comprador se hace 
@@ -153,55 +154,6 @@ st.subheader("📌 Contexto")
     de experiencia.
     """)
 
-    st.divider()
-
-    # Objetivo
-    st.subheader("🎯 Objetivo")
-    st.markdown("""
-    Este tablero tiene como finalidad **democratizar el acceso a información del mercado inmobiliario** 
-    de la CDMX mediante el análisis de datos y Machine Learning. A través de este análisis buscamos:
-
-    - Identificar los **factores clave** que determinan el precio de un inmueble
-    - Detectar **propiedades subvaluadas** que representen oportunidades de inversión
-    - Visualizar la **distribución geográfica** de precios y plusvalía por alcaldía
-    - Proveer una herramienta de **predicción de precios** basada en datos reales
-    """)
-
-    st.divider()
-
-    # Métricas generales
-    st.subheader("📊 Resumen del dataset")
-
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Total propiedades", f"{len(df):,}")
-    col2.metric("Lugares en CDMX", df["places"].nunique())
-    col3.metric("Precio mediano", f"${df_clean['price'].median():,.0f} MXN")
-    col4.metric("Precio promedio", f"${df_clean['price'].mean():,.0f} MXN")
-
-    st.divider()
-
-    st.subheader("🏠 Precios por tipo de inmueble")
-
-    df_apt = df_clean[df_clean["property_type"] == "apartment"]
-    df_house = df_clean[df_clean["property_type"] == "house"]
-
-    # Departamentos
-    st.markdown("#### 🏢 Departamentos")
-    a1, a2, a3, a4 = st.columns(4)
-    a1.metric("Total", f"{len(df_apt):,}")
-    a2.metric("Mediana", f"${df_apt['price'].median():,.0f} MXN")
-    a3.metric("Precio promedio", f"${df_apt['price'].mean():,.0f} MXN")
-    a4.metric("Precio por m²", f"${df_apt['price_per_m2'].mean():,.0f} MXN")
-
-    st.markdown("")
-
-    # Casas
-    st.markdown("#### 🏡 Casas")
-    h1, h2, h3, h4 = st.columns(4)
-    h1.metric("Total", f"{len(df_house):,}")
-    h2.metric("Mediana", f"${df_house['price'].median():,.0f} MXN")
-    h3.metric("Precio promedio", f"${df_house['price'].mean():,.0f} MXN")
-    h4.metric("Precio por m²", f"${df_house['price_per_m2'].mean():,.0f} MXN")
     st.divider()
 
     # Qué encontrarás
@@ -246,15 +198,6 @@ st.subheader("📌 Contexto")
         """)
 
     st.divider()
-
-    # Nota metodológica
-    st.subheader("📋 Nota metodológica")
-    st.markdown("""
-    - El dataset contiene **{:,} propiedades** después de eliminar tipos de inmueble no relevantes (locales comerciales y PH).
-    - Se removieron outliers extremos (percentil 1-99) para garantizar análisis más representativos.
-    - El modelo de Machine Learning fue entrenado con el **80% de los datos** y evaluado con el **20% restante**.
-    - Las oportunidades de inversión se definen como propiedades cuyo precio real está entre **10% y 40% por debajo** del valor estimado por el modelo.
-    """.format(len(df)))
     
 elif seccion == "📊 Gráficas":
     st.title("📊 Gráficas")
