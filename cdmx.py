@@ -160,32 +160,33 @@ if seccion == "🏠 Inicio":
     col3.metric("Precio mediano", f"${df_clean['price'].median():,.0f} MXN")
     col4.metric("Precio promedio", f"${df_clean['price'].mean():,.0f} MXN")
 
-st.divider()
+    st.divider()
 
+    # Métricas por tipo de inmueble
     st.subheader("🏠 Precios por tipo de inmueble")
 
     df_apt = df_clean[df_clean["property_type"] == "apartment"]
     df_house = df_clean[df_clean["property_type"] == "house"]
 
-    col_apt, col_house = st.columns(2)
+    col5, col6, col7, col8 = st.columns(4)
+    with col5:
+        st.metric("Departamentos — Total", f"{len(df_apt):,}")
+    with col6:
+        st.metric("Departamentos — Mediana", f"${df_apt['price'].median():,.0f} MXN")
+    with col7:
+        st.metric("Casas — Total", f"{len(df_house):,}")
+    with col8:
+        st.metric("Casas — Mediana", f"${df_house['price'].median():,.0f} MXN")
 
-    with col_apt:
-        st.markdown("#### 🏢 Departamentos")
-        a1, a2 = st.columns(2)
-        a1.metric("Total", f"{len(df_apt):,}")
-        a2.metric("Mediana", f"${df_apt['price'].median():,.0f} MXN")
-        a3, a4 = st.columns(2)
-        a3.metric("Precio promedio", f"${df_apt['price'].mean():,.0f} MXN")
-        a4.metric("Precio por m²", f"${df_apt['price_per_m2'].mean():,.0f} MXN")
-
-    with col_house:
-        st.markdown("#### 🏡 Casas")
-        h1, h2 = st.columns(2)
-        h1.metric("Total", f"{len(df_house):,}")
-        h2.metric("Mediana", f"${df_house['price'].median():,.0f} MXN")
-        h3, h4 = st.columns(2)
-        h3.metric("Precio promedio", f"${df_house['price'].mean():,.0f} MXN")
-        h4.metric("Precio por m²", f"${df_house['price_per_m2'].mean():,.0f} MXN")
+    col9, col10, col11, col12 = st.columns(4)
+    with col9:
+        st.metric("Depto — Precio promedio", f"${df_apt['price'].mean():,.0f} MXN")
+    with col10:
+        st.metric("Depto — Precio por m²", f"${df_apt['price_per_m2'].mean():,.0f} MXN")
+    with col11:
+        st.metric("Casa — Precio promedio", f"${df_house['price'].mean():,.0f} MXN")
+    with col12:
+        st.metric("Casa — Precio por m²", f"${df_house['price_per_m2'].mean():,.0f} MXN")
 
     st.divider()
 
@@ -240,6 +241,7 @@ st.divider()
     - El modelo de Machine Learning fue entrenado con el **80% de los datos** y evaluado con el **20% restante**.
     - Las oportunidades de inversión se definen como propiedades cuyo precio real está entre **10% y 40% por debajo** del valor estimado por el modelo.
     """.format(len(df)))
+    
 elif seccion == "📊 Gráficas":
     st.title("📊 Gráficas")
 
