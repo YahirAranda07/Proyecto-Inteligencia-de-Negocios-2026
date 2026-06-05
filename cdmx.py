@@ -149,9 +149,7 @@ if seccion == "🏠 Inicio":
     - **¿Qué tan caro es el m²** en la alcaldía que me interesa comparado con las demás?
     - **¿Existe alguna propiedad subvaluada** que nadie más ha detectado?
 
-    Usando datos reales del mercado y un modelo de Machine Learning, este tablero te da 
-    una ventaja que antes solo tenían los desarrolladores y agentes inmobiliarios con años 
-    de experiencia.
+
     """)
 
     st.divider()
