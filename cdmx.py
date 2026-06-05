@@ -301,15 +301,22 @@ elif seccion == "📊 Gráficas":
 
     st.divider()
 
-    # Gráfica 5 — Histograma precios
-    st.subheader("Distribución de precios")
+    # Gráfica 5 — Histograma precios por tipo de inmueble
+    st.subheader("Distribución de precios por tipo de inmueble")
     fig5, ax5 = plt.subplots(figsize=(14, 5))
-    ax5.hist(df_clean["price"], bins=50, color="steelblue", edgecolor="white")
-    ax5.set_title("Distribución de precios - CDMX", fontsize=14)
+
+    colores_tipo = {"apartment": "steelblue", "house": "salmon"}
+
+    for tipo in df_clean["property_type"].unique():
+        datos = df_clean[df_clean["property_type"] == tipo]["price"]
+        ax5.hist(datos, bins=50, alpha=0.6, color=colores_tipo[tipo], edgecolor="white", label=tipo)
+
+    ax5.set_title("Distribución de precios por tipo de inmueble - CDMX", fontsize=14)
     ax5.set_xlabel("Precio (MXN)", fontsize=12)
     ax5.set_ylabel("Número de propiedades", fontsize=12)
     ax5.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x:,.0f}"))
     ax5.set_xlim(100000, df_clean["price"].quantile(0.99))
+    ax5.legend(title="Tipo de inmueble")
     plt.tight_layout()
     st.pyplot(fig5)
 
