@@ -536,39 +536,51 @@ elif seccion == "🤖 Modelo ML":
 elif seccion == "📝 Observaciones":
     st.title("📝 Observaciones")
 
-    st.markdown("### ¿En qué lugar en CDMX conviene más invertir para compra-venta de inmuebles?")
-    st.markdown("Con base en el análisis realizado, estas son las principales conclusiones:")
+    st.markdown("### ¿Dónde puede vivir un joven profesionista en la CDMX sin pagar de más?")
+    st.markdown("Con base en el análisis realizado, estas son las principales conclusiones para un comprador entre 23 y 30 años.")
 
     st.divider()
 
-    st.subheader("📊 Comportamiento del mercado")
+    st.subheader("📊 El mercado que te vas a encontrar")
     st.markdown("""
-    - El mercado inmobiliario de la CDMX está dominado por **departamentos**, los cuales representan la mayor parte de la oferta en casi todos los lugares.
-    - **Benito Juárez** es el lugar con mayor volumen de propiedades disponibles, seguida de **Miguel Hidalgo** y **Álvaro Obregón**.
-    - Los precios varían significativamente entre lugares — **MagdalenaContreras** y **Cuajimalpa** tienen los precios medianos más altos, mientras que **Iztapalapa**, **Tláhuac** e **Iztacalco** tienen los más bajos.
+    - El **87% de la oferta son departamentos** — si estás buscando tu primer inmueble, casi seguro será un departamento.
+    - Los precios varían enormemente dentro de la misma alcaldía. En **Benito Juárez**, que tiene la mayor oferta con 3,659 propiedades, puedes encontrar desde $800,000 hasta más de $10,000,000 MXN — lo que hace casi imposible saber si lo que te ofrecen es justo sin un punto de referencia.
+    - Alcaldías como **Roma, Condesa y Narvarte** — que pertenecen a **Cuauhtémoc y Benito Juárez** — han experimentado un alza sostenida de precios impulsada por la llegada de trabajadores extranjeros que perciben ingresos en dólares. Esto significa que el comprador mexicano recién egresado compite en un mercado que ya no está calibrado para su nivel de ingreso.
     """)
 
     st.divider()
 
-    st.subheader("🗺️ Plusvalía y ubicación")
+    st.subheader("💸 ¿Qué alcaldías se ajustan a un presupuesto real?")
     st.markdown("""
-    - Los lugares del poniente y sur de la ciudad concentran los precios más altos por m².
-    - **Miguel Hidalgo** y **Cuajimalpa** destacan como los lugares de mayor plusvalía.
-    - Los lugares del oriente como **Iztapalapa**, **Iztacalco** y **Venustiano Carranza** tienen precios más accesibles pero con menor plusvalía histórica.
+    Un profesionista recién egresado que destina entre el 25% y 30% de su ingreso a vivienda 
+    generalmente tiene acceso a un crédito de entre **$800,000 y $2,000,000 MXN**. 
+    Con eso en mente, el panorama es el siguiente:
+
+    - **Iztapalapa, Iztacalco, Tláhuac y Venustiano Carranza** son las alcaldías con precios medianos más accesibles — por debajo de $1,500,000 MXN.
+    - **Azcapotzalco y Gustavo A. Madero** ofrecen un balance entre precio y ubicación, con medianas entre $1,200,000 y $1,800,000 MXN.
+    - **Coyoacán y Álvaro Obregón** son opciones intermedias con buena calidad de vida pero precios ya más elevados — medianas entre $2,000,000 y $3,000,000 MXN.
+    - **Benito Juárez, Miguel Hidalgo y Cuajimalpa** están fuera del alcance de la mayoría de los compradores jóvenes con medianas superiores a $3,500,000 MXN — y con el efecto del nearshoring, sus precios siguen subiendo.
     """)
 
     st.divider()
 
-    st.subheader("🤖 Modelo de predicción")
+    st.subheader("🗺️ El vendedor siempre lleva ventaja — hasta ahora")
     st.markdown("""
-    - El **Árbol de Decisión** fue el modelo más preciso con un R² de 0.89 y un error promedio de $456,307 MXN.
-    - Las variables más importantes para predecir el precio fueron el **precio por m²** y la **superficie cubierta**.
-    - El **lugar en CDMX** y el **tipo de inmueble** también tienen un impacto significativo en el precio final.
+    Quien vende lleva años en el mercado y sabe exactamente cuánto vale su propiedad y hasta dónde puede negociar. 
+    El comprador que busca por primera vez llega sin ningún punto de referencia.
+
+    Nuestro modelo de Machine Learning cambia eso. Con un **R² de 0.89** y un error promedio de **$456,307 MXN**, 
+    el modelo es capaz de estimar el valor justo de una propiedad basándose en su alcaldía, 
+    tipo de inmueble, metros cuadrados y precio por m². 
+
+    Esto permite identificar propiedades cuyo precio real está **entre 10% y 40% por debajo** 
+    de lo que el mercado indica que deberían costar — es decir, propiedades donde el comprador 
+    tiene una ventaja real de negociación.
     """)
 
     st.divider()
 
-    st.subheader("💰 Oportunidades de inversión")
+    st.subheader("💰 Oportunidades detectadas por el modelo")
     st.markdown("Propiedades cuyo precio real está entre 10% y 40% por debajo del valor estimado por el modelo.")
 
     oportunidades_reales = df_model2[
@@ -613,47 +625,50 @@ elif seccion == "📝 Observaciones":
 
     st.divider()
 
-    st.subheader("🏆 Recomendación de inversión")
+    st.subheader("🏆 ¿Dónde están las mejores oportunidades?")
 
     col3, col4, col5 = st.columns(3)
 
     with col3:
         st.success("""
-        **Mayor volumen**
+        **Mayor volumen de oportunidades**
         
         🏆 Benito Juárez
         
-        770 propiedades subvaluadas con descuento promedio de 16.0%
+        770 propiedades subvaluadas — ideal si quieres variedad de opciones en una zona céntrica y con alta demanda de reventa.
         """)
 
     with col4:
         st.warning("""
-        **Mayor descuento**
+        **Mayor margen de negociación**
         
-        🥇 Tláhuac
+        🥇 Tláhuac y Cuajimalpa
         
-        95 propiedades con el mayor descuento promedio de 22.9%
+        Descuentos promedio de 22.9% y 22.2% — para quienes buscan el mayor diferencial entre precio de compra y valor real.
         """)
 
     with col5:
         st.info("""
-        **Balance volumen/descuento**
+        **Mejor opción para presupuesto limitado**
         
         💡 Iztapalapa
         
-        392 propiedades subvaluadas con descuento promedio de 20.8%
+        392 oportunidades con 20.8% de descuento promedio y precios de entrada accesibles para un primer crédito hipotecario.
         """)
 
     st.divider()
 
     st.markdown("""
-    En conclusión, **Benito Juárez** es el lugar con mayor volumen de oportunidades para invertir 
-    en compra-venta de inmuebles con 770 propiedades subvaluadas. Para inversores que buscan 
-    el mayor margen de ganancia, **Tláhuac** y **Cuajimalpa** ofrecen los mayores descuentos 
-    promedio con 22.9% y 22.2% respectivamente. Para un balance entre volumen y descuento, 
-    **Iztapalapa** representa la mejor alternativa con 392 oportunidades y un descuento promedio de 20.8%.
+    **¿Qué significa esto para un comprador joven?**
+    
+    Si tu presupuesto es limitado y buscas tu primer inmueble, **Iztapalapa** ofrece la combinación 
+    más realista de precio accesible y oportunidades detectadas por el modelo. Si tienes un poco más 
+    de capital y buscas una zona con mayor plusvalía y facilidad de reventa, **Benito Juárez** 
+    concentra la mayor cantidad de propiedades subvaluadas en una de las alcaldías más demandadas 
+    de la ciudad. Y si lo que buscas es el mayor margen de negociación posible, 
+    **Tláhuac y Cuajimalpa** son donde el modelo detecta las brechas más grandes entre 
+    precio real y valor de mercado.
     """)
-
 elif seccion == "🔮 Predicciones":
     st.title("🔮 Predicciones")
     st.markdown("Ingresa las características del inmueble para estimar su valor de mercado según el modelo.")
