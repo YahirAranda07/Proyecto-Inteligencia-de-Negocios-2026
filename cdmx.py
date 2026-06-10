@@ -496,7 +496,7 @@ elif seccion == "🔮 Predicciones":
 
                 if len(resultados) > 3:
                     st.markdown(f"*También encontramos {len(resultados) - 3} alcaldías adicionales que se ajustan a tu presupuesto.*")
-    elif seccion == "💼 Calculadora Salarial":
+elif seccion == "💼 Calculadora Salarial":
     st.title("💼 ¿Cuánto necesito ganar para vivir en cada alcaldía?")
     st.markdown("""
     Un profesionista recién egresado debería destinar **máximo el 30% de su ingreso mensual** 
