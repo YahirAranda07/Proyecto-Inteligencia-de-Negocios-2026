@@ -99,11 +99,12 @@ y_test, y_pred_lr, y_pred_dt = calcular_modelos(df_clean, le_places, le_type, dt
 cdmx_geojson = cargar_geojson()
 
 # ── Navegación lateral ───────────────────────────────────────
+st.sidebar.title("🏠 Inversión Inmobiliaria CDMX")
 seccion = st.sidebar.radio("Navegación", [
     "🏠 Inicio",
+    "📍 Resumen por Alcaldía",
     "🗺️ Mapa",
-    "🔮 Predicciones",
-    "💼 Calculadora Salarial"
+    "🔮 Predicciones"
 ])
 
 # ── Secciones ────────────────────────────────────────────────
@@ -112,7 +113,6 @@ if seccion == "🏠 Inicio":
 
     st.divider()
 
-    # Contexto del problema
     st.subheader("📌 Contexto")
     st.markdown("""
     Tienes entre 25 y 30 años, estás saliendo de la carrera o llevas pocos años trabajando 
@@ -131,7 +131,6 @@ if seccion == "🏠 Inicio":
 
     st.divider()
 
-    # Objetivo
     st.subheader("🎯 ¿Para qué sirve este tablero?")
     st.markdown("""
     Este tablero nació para responder las preguntas que cualquier joven comprador se hace 
@@ -149,9 +148,7 @@ if seccion == "🏠 Inicio":
 
     st.divider()
 
-    # Métricas generales
     st.subheader("📊 Resumen del dataset")
-
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Total propiedades", f"{len(df):,}")
     col2.metric("Alcaldías analizadas", df["places"].nunique())
@@ -160,9 +157,7 @@ if seccion == "🏠 Inicio":
 
     st.divider()
 
-    # Métricas por tipo de inmueble
     st.subheader("🏠 Precios por tipo de inmueble")
-
     df_apt = df_clean[df_clean["property_type"] == "apartment"]
     df_house = df_clean[df_clean["property_type"] == "house"]
 
@@ -184,28 +179,31 @@ if seccion == "🏠 Inicio":
 
     st.divider()
 
-    # Qué encontrarás
     st.subheader("🗂️ ¿Qué encontrarás en este tablero?")
-
-    col5, col6, col7 = st.columns(3)
+    col5, col6, col7, col8 = st.columns(4)
 
     with col5:
+        st.info("""
+        **📍 Resumen por Alcaldía**
+        
+        Selecciona una alcaldía y ve sus estadísticas clave — precios, m², oportunidades 
+        y distribución del mercado.
+        """)
+    with col6:
         st.info("""
         **🗺️ Mapa**
         
         Mapa interactivo con la ubicación de propiedades filtrables por alcaldía, 
-        tipo de inmueble y rango de precio. Incluye mapa de valuación por alcaldía.
+        tipo de inmueble y rango de precio.
         """)
-
-    with col6:
+    with col7:
         st.info("""
         **🔮 Predicciones**
         
-        Herramienta interactiva — ingresa tu presupuesto, metros cuadrados y tipo 
-        de inmueble para obtener el Top 3 de alcaldías que se ajustan a tus necesidades.
+        Ingresa tu presupuesto, metros cuadrados y tipo de inmueble para obtener 
+        el Top 3 de alcaldías que se ajustan a tus necesidades.
         """)
-
-    with col7:
+    with col8:
         st.info("""
         **🤖 Modelo ML**
         
@@ -215,7 +213,6 @@ if seccion == "🏠 Inicio":
 
     st.divider()
 
-    # Nota metodológica
     st.subheader("📋 Nota metodológica")
     st.markdown("""
     - El dataset contiene **{:,} propiedades** después de eliminar tipos de inmueble no relevantes (locales comerciales y PH).
@@ -223,6 +220,88 @@ if seccion == "🏠 Inicio":
     - El modelo de Machine Learning fue entrenado con el **80% de los datos** y evaluado con el **20% restante**.
     - Las oportunidades de inversión se definen como propiedades cuyo precio real está entre **10% y 40% por debajo** del valor estimado por el modelo.
     """.format(len(df)))
+
+elif seccion == "📍 Resumen por Alcaldía":
+    st.title("📍 Resumen por Alcaldía")
+    st.markdown("Selecciona una alcaldía y ve sus estadísticas clave del mercado inmobiliario.")
+
+    st.divider()
+
+    alcaldia_sel = st.selectbox("Selecciona una alcaldía", options=sorted(df_clean["places"].unique()))
+
+    df_sel = df_clean[df_clean["places"] == alcaldia_sel]
+    df_sel_apt = df_sel[df_sel["property_type"] == "apartment"]
+    df_sel_house = df_sel[df_sel["property_type"] == "house"]
+
+    st.divider()
+
+    st.subheader(f"📊 {alcaldia_sel} — Panorama general")
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Total propiedades", f"{len(df_sel):,}")
+    c2.metric("Precio promedio", f"${df_sel['price'].mean():,.0f} MXN")
+    c3.metric("Precio mediano", f"${df_sel['price'].median():,.0f} MXN")
+    c4.metric("Precio por m² promedio", f"${df_sel['price_per_m2'].mean():,.0f} MXN")
+
+    st.divider()
+
+    st.subheader("🏠 Por tipo de inmueble")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("#### 🏢 Departamentos")
+        a1, a2 = st.columns(2)
+        a1.metric("Total", f"{len(df_sel_apt):,}")
+        a2.metric("Precio promedio", f"${df_sel_apt['price'].mean():,.0f} MXN")
+        a3, a4 = st.columns(2)
+        a3.metric("Precio mediano", f"${df_sel_apt['price'].median():,.0f} MXN")
+        a4.metric("m² promedio", f"{df_sel_apt['surface_covered_in_m2'].mean():,.0f} m²")
+
+    with col2:
+        st.markdown("#### 🏡 Casas")
+        h1, h2 = st.columns(2)
+        h1.metric("Total", f"{len(df_sel_house):,}")
+        h2.metric("Precio promedio", f"${df_sel_house['price'].mean():,.0f} MXN")
+        h3, h4 = st.columns(2)
+        h3.metric("Precio mediano", f"${df_sel_house['price'].median():,.0f} MXN")
+        h4.metric("m² promedio", f"{df_sel_house['surface_covered_in_m2'].mean():,.0f} m²")
+
+    st.divider()
+
+    st.subheader("💰 Rango de precios")
+    r1, r2, r3 = st.columns(3)
+    r1.metric("Precio mínimo (10%)", f"${df_sel['price'].quantile(0.10):,.0f} MXN")
+    r2.metric("Precio mediano (50%)", f"${df_sel['price'].quantile(0.50):,.0f} MXN")
+    r3.metric("Precio máximo (90%)", f"${df_sel['price'].quantile(0.90):,.0f} MXN")
+
+    st.divider()
+
+    oport_alcaldia = df_model2[
+        (df_model2["places"] == alcaldia_sel) &
+        (df_model2["diferencia_pct"] < -10) &
+        (df_model2["diferencia_pct"] > -40)
+    ]
+
+    st.subheader("🎯 Oportunidades detectadas por el modelo")
+    o1, o2 = st.columns(2)
+    o1.metric("Propiedades subvaluadas", f"{len(oport_alcaldia):,}")
+    o2.metric("Descuento promedio", f"{oport_alcaldia['diferencia_pct'].abs().mean():.1f}%")
+
+    st.divider()
+
+    st.subheader("📈 Distribución de precios")
+    fig, ax = plt.subplots(figsize=(14, 4))
+    for tipo_p, color in [("apartment", "steelblue"), ("house", "salmon")]:
+        datos = df_sel[df_sel["property_type"] == tipo_p]["price"]
+        if len(datos) > 0:
+            ax.hist(datos, bins=30, alpha=0.6, color=color, edgecolor="white",
+                    label="Departamento" if tipo_p == "apartment" else "Casa")
+    ax.set_xlabel("Precio (MXN)")
+    ax.set_ylabel("Número de propiedades")
+    ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x:,.0f}"))
+    ax.set_xlim(df_sel["price"].quantile(0.05), df_sel["price"].quantile(0.95))
+    ax.legend()
+    plt.tight_layout()
+    st.pyplot(fig)
 
 elif seccion == "🗺️ Mapa":
     st.title("🗺️ Mapa")
@@ -235,8 +314,8 @@ elif seccion == "🗺️ Mapa":
         col1, col2 = st.columns(2)
         with col1:
             alcaldia_filtro = st.multiselect("Filtrar por alcaldía",
-                                          options=sorted(df["places"].unique()),
-                                          default=sorted(df["places"].unique()))
+                                              options=sorted(df["places"].unique()),
+                                              default=sorted(df["places"].unique()))
         with col2:
             tipo_filtro_mapa = st.multiselect("Filtrar por tipo de inmueble",
                                               options=sorted(df["property_type"].unique()),
@@ -466,7 +545,6 @@ elif seccion == "🔮 Predicciones":
 
             if len(resultados) == 0:
                 st.warning("No encontramos alcaldías que se ajusten a tu presupuesto y preferencias. Intenta ampliar tu rango de presupuesto o ajustar los metros cuadrados.")
-
             else:
                 top3 = resultados[:3]
                 st.subheader("🏆 Top 3 mejores alcaldías para ti")
@@ -496,119 +574,3 @@ elif seccion == "🔮 Predicciones":
 
                 if len(resultados) > 3:
                     st.markdown(f"*También encontramos {len(resultados) - 3} alcaldías adicionales que se ajustan a tu presupuesto.*")
-elif seccion == "💼 Calculadora Salarial":
-    st.title("💼 ¿Cuánto necesito ganar para vivir en cada alcaldía?")
-    st.markdown("""
-    Un profesionista recién egresado debería destinar **máximo el 30% de su ingreso mensual** 
-    a vivienda. Ingresa tu salario y te decimos en qué alcaldías puedes comprar sin comprometer tu economía.
-    """)
-
-    st.divider()
-
-    col1, col2 = st.columns(2)
-    with col1:
-        salario = st.number_input(
-            "💰 Salario mensual neto (MXN)",
-            min_value=5000,
-            max_value=200000,
-            value=20000,
-            step=1000,
-            format="%d"
-        )
-    with col2:
-        plazo = st.selectbox(
-            "📅 Plazo del crédito hipotecario",
-            options=[10, 15, 20, 25, 30],
-            index=2,
-            format_func=lambda x: f"{x} años"
-        )
-        tasa = st.number_input(
-            "📈 Tasa de interés anual (%)",
-            min_value=1.0,
-            max_value=20.0,
-            value=10.5,
-            step=0.1
-        )
-
-    st.divider()
-
-    # Cálculo
-    mensualidad_max = salario * 0.30
-    tasa_mensual = (tasa / 100) / 12
-    meses = plazo * 12
-    # Fórmula de crédito hipotecario
-    if tasa_mensual > 0:
-        credito_maximo = mensualidad_max * ((1 - (1 + tasa_mensual) ** -meses) / tasa_mensual)
-    else:
-        credito_maximo = mensualidad_max * meses
-
-    st.subheader("📊 Tu capacidad de compra")
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Mensualidad máxima (30%)", f"${mensualidad_max:,.0f} MXN")
-    c2.metric("Crédito máximo estimado", f"${credito_maximo:,.0f} MXN")
-    c3.metric("Plazo seleccionado", f"{plazo} años")
-
-    st.divider()
-
-    # Clasificar alcaldías
-    st.subheader("🏙️ ¿En qué alcaldías puedes comprar?")
-    st.markdown(f"Con un crédito estimado de **${credito_maximo:,.0f} MXN** basado en tu salario:")
-
-    resumen_alcaldias = df_clean.groupby("places")["price"].agg(
-        precio_mediano="median",
-        precio_minimo=lambda x: x.quantile(0.10),
-        propiedades_accesibles=lambda x: (x <= credito_maximo).sum()
-    ).reset_index()
-
-    def clasificar(row):
-        if row["precio_mediano"] <= credito_maximo:
-            return "✅ Alcanzable"
-        elif row["precio_minimo"] <= credito_maximo:
-            return "⚠️ Parcialmente alcanzable"
-        else:
-            return "❌ Fuera de rango"
-
-    resumen_alcaldias["estado"] = resumen_alcaldias.apply(clasificar, axis=1)
-    resumen_alcaldias = resumen_alcaldias.sort_values("precio_mediano")
-
-    # Gráfica
-    colores_barra = []
-    for _, row in resumen_alcaldias.iterrows():
-        if row["estado"] == "✅ Alcanzable":
-            colores_barra.append("green")
-        elif row["estado"] == "⚠️ Parcialmente alcanzable":
-            colores_barra.append("orange")
-        else:
-            colores_barra.append("salmon")
-
-    fig, ax = plt.subplots(figsize=(14, 6))
-    bars = ax.barh(resumen_alcaldias["places"], resumen_alcaldias["precio_mediano"],
-                   color=colores_barra, edgecolor="white")
-    ax.axvline(x=credito_maximo, color="blue", linestyle="--", linewidth=2,
-               label=f"Tu crédito máximo: ${credito_maximo:,.0f}")
-    ax.set_title("Precio mediano por alcaldía vs tu crédito máximo", fontsize=14)
-    ax.set_xlabel("Precio mediano (MXN)")
-    ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x:,.0f}"))
-    ax.legend()
-    plt.tight_layout()
-    st.pyplot(fig)
-
-    st.divider()
-
-    # Tabla resumen
-    st.subheader("📋 Resumen por alcaldía")
-    tabla = resumen_alcaldias[["places", "precio_mediano", "propiedades_accesibles", "estado"]].copy()
-    tabla.columns = ["Alcaldía", "Precio mediano (MXN)", "Propiedades en tu rango", "Estado"]
-    tabla["Precio mediano (MXN)"] = tabla["Precio mediano (MXN)"].apply(lambda x: f"${x:,.0f}")
-    tabla = tabla.sort_values("Estado")
-    st.dataframe(tabla, use_container_width=True, hide_index=True)
-
-    st.divider()
-
-    st.markdown("""
-    **¿Cómo se calcula el crédito máximo?**
-    
-    Se usa la fórmula estándar de crédito hipotecario considerando tu mensualidad máxima 
-    (30% de tu salario), la tasa de interés anual y el plazo seleccionado. 
-    Es una estimación referencial — cada banco tiene sus propios criterios de aprobación.
-    """)
