@@ -286,7 +286,7 @@ elif seccion == "📊 Gráficas":
 elif seccion == "🗺️ Mapa":
     st.title("🗺️ Mapa")
 
-    tab1, tab2 = st.tabs(["📍 Propiedades", "🌡️ Plusvalía por lugar en CDMX"])
+    tab1, tab2 = st.tabs(["📍 Propiedades", "🌡️ Valuación por lugar en CDMX"])
 
     with tab1:
         st.markdown("Visualización de propiedades en el mapa. Haz clic en cada punto para ver el precio y detalles.")
@@ -350,7 +350,13 @@ elif seccion == "🗺️ Mapa":
         st_folium(mapa, width=1200, height=500)
 
     with tab2:
-        st.markdown("Lugares en CDMX coloreados por precio promedio de las propiedades. Rojo indica mayor plusvalía.")
+        st.markdown("Lugares en CDMX coloreados por **precio promedio de las propiedades**. Entre más rojo, mayor es el precio promedio en esa zona.")
+
+        st.markdown("""
+        ℹ️ Este mapa muestra qué tan caro es comprar en cada alcaldía en promedio. 
+        No representa plusvalía (que requeriría datos históricos de tiempo), 
+        sino el **nivel de precios actual** — útil para identificar zonas accesibles vs zonas de alto valor.
+        """)
 
         mapeo = {
             "Benito Juárez": "BenitoJuarez",
@@ -363,19 +369,19 @@ elif seccion == "🗺️ Mapa":
             "Tláhuac": "Tlahuac"
         }
 
-        plusvalia = df_clean.groupby("places")["price"].mean().reset_index()
-        plusvalia.columns = ["places", "precio_promedio"]
+        valuacion = df_clean.groupby("places")["price"].mean().reset_index()
+        valuacion.columns = ["places", "precio_promedio"]
 
-        geojson_plusvalia = copy.deepcopy(cdmx_geojson)
+        geojson_valuacion = copy.deepcopy(cdmx_geojson)
 
-        for feature in geojson_plusvalia["features"]:
+        for feature in geojson_valuacion["features"]:
             nombre_geo = feature["properties"]["nomgeo"]
             nombre_dataset = mapeo.get(nombre_geo, nombre_geo.replace(" ", ""))
-            match = plusvalia[plusvalia["places"] == nombre_dataset]
+            match = valuacion[valuacion["places"] == nombre_dataset]
             feature["properties"]["precio_promedio"] = int(match["precio_promedio"].values[0]) if not match.empty else 0
 
-        precio_max_map = plusvalia["precio_promedio"].max()
-        precio_min_map = plusvalia["precio_promedio"].min()
+        precio_max_map = valuacion["precio_promedio"].max()
+        precio_min_map = valuacion["precio_promedio"].min()
 
         def get_color(precio):
             if precio == 0:
@@ -392,10 +398,10 @@ elif seccion == "🗺️ Mapa":
             else:
                 return "#ffffb2"
 
-        mapa_plusvalia = folium.Map(location=[19.43, -99.13], zoom_start=11)
+        mapa_valuacion = folium.Map(location=[19.43, -99.13], zoom_start=11)
 
         folium.GeoJson(
-            geojson_plusvalia,
+            geojson_valuacion,
             style_function=lambda x: {
                 "fillColor": get_color(x["properties"]["precio_promedio"]),
                 "color": "gray",
@@ -407,9 +413,19 @@ elif seccion == "🗺️ Mapa":
                 aliases=["Lugar en CDMX:", "Precio promedio (MXN):"],
                 localize=True
             )
-        ).add_to(mapa_plusvalia)
+        ).add_to(mapa_valuacion)
 
-        st_folium(mapa_plusvalia, width=1200, height=500)
+        st_folium(mapa_valuacion, width=1200, height=500)
+
+        st.divider()
+
+        # Ranking de valuación
+        st.subheader("📊 Ranking de valuación por alcaldía")
+        valuacion_sorted = valuacion.sort_values("precio_promedio", ascending=False).reset_index(drop=True)
+        valuacion_sorted.index += 1
+        valuacion_sorted.columns = ["Lugar en CDMX", "Precio promedio (MXN)"]
+        valuacion_sorted["Precio promedio (MXN)"] = valuacion_sorted["Precio promedio (MXN)"].apply(lambda x: f"${x:,.0f}")
+        st.dataframe(valuacion_sorted, use_container_width=True)
 
 elif seccion == "🤖 Modelo ML":
     st.title("🤖 Modelo ML")
