@@ -99,11 +99,11 @@ y_test, y_pred_lr, y_pred_dt = calcular_modelos(df_clean, le_places, le_type, dt
 cdmx_geojson = cargar_geojson()
 
 # ── Navegación lateral ───────────────────────────────────────
-st.sidebar.title("🏠 Inversión Inmobiliaria CDMX")
 seccion = st.sidebar.radio("Navegación", [
     "🏠 Inicio",
     "🗺️ Mapa",
-    "🔮 Predicciones"
+    "🔮 Predicciones",
+    "💼 Calculadora Salarial"
 ])
 
 # ── Secciones ────────────────────────────────────────────────
@@ -496,3 +496,119 @@ elif seccion == "🔮 Predicciones":
 
                 if len(resultados) > 3:
                     st.markdown(f"*También encontramos {len(resultados) - 3} alcaldías adicionales que se ajustan a tu presupuesto.*")
+    elif seccion == "💼 Calculadora Salarial":
+    st.title("💼 ¿Cuánto necesito ganar para vivir en cada alcaldía?")
+    st.markdown("""
+    Un profesionista recién egresado debería destinar **máximo el 30% de su ingreso mensual** 
+    a vivienda. Ingresa tu salario y te decimos en qué alcaldías puedes comprar sin comprometer tu economía.
+    """)
+
+    st.divider()
+
+    col1, col2 = st.columns(2)
+    with col1:
+        salario = st.number_input(
+            "💰 Salario mensual neto (MXN)",
+            min_value=5000,
+            max_value=200000,
+            value=20000,
+            step=1000,
+            format="%d"
+        )
+    with col2:
+        plazo = st.selectbox(
+            "📅 Plazo del crédito hipotecario",
+            options=[10, 15, 20, 25, 30],
+            index=2,
+            format_func=lambda x: f"{x} años"
+        )
+        tasa = st.number_input(
+            "📈 Tasa de interés anual (%)",
+            min_value=1.0,
+            max_value=20.0,
+            value=10.5,
+            step=0.1
+        )
+
+    st.divider()
+
+    # Cálculo
+    mensualidad_max = salario * 0.30
+    tasa_mensual = (tasa / 100) / 12
+    meses = plazo * 12
+    # Fórmula de crédito hipotecario
+    if tasa_mensual > 0:
+        credito_maximo = mensualidad_max * ((1 - (1 + tasa_mensual) ** -meses) / tasa_mensual)
+    else:
+        credito_maximo = mensualidad_max * meses
+
+    st.subheader("📊 Tu capacidad de compra")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Mensualidad máxima (30%)", f"${mensualidad_max:,.0f} MXN")
+    c2.metric("Crédito máximo estimado", f"${credito_maximo:,.0f} MXN")
+    c3.metric("Plazo seleccionado", f"{plazo} años")
+
+    st.divider()
+
+    # Clasificar alcaldías
+    st.subheader("🏙️ ¿En qué alcaldías puedes comprar?")
+    st.markdown(f"Con un crédito estimado de **${credito_maximo:,.0f} MXN** basado en tu salario:")
+
+    resumen_alcaldias = df_clean.groupby("places")["price"].agg(
+        precio_mediano="median",
+        precio_minimo=lambda x: x.quantile(0.10),
+        propiedades_accesibles=lambda x: (x <= credito_maximo).sum()
+    ).reset_index()
+
+    def clasificar(row):
+        if row["precio_mediano"] <= credito_maximo:
+            return "✅ Alcanzable"
+        elif row["precio_minimo"] <= credito_maximo:
+            return "⚠️ Parcialmente alcanzable"
+        else:
+            return "❌ Fuera de rango"
+
+    resumen_alcaldias["estado"] = resumen_alcaldias.apply(clasificar, axis=1)
+    resumen_alcaldias = resumen_alcaldias.sort_values("precio_mediano")
+
+    # Gráfica
+    colores_barra = []
+    for _, row in resumen_alcaldias.iterrows():
+        if row["estado"] == "✅ Alcanzable":
+            colores_barra.append("green")
+        elif row["estado"] == "⚠️ Parcialmente alcanzable":
+            colores_barra.append("orange")
+        else:
+            colores_barra.append("salmon")
+
+    fig, ax = plt.subplots(figsize=(14, 6))
+    bars = ax.barh(resumen_alcaldias["places"], resumen_alcaldias["precio_mediano"],
+                   color=colores_barra, edgecolor="white")
+    ax.axvline(x=credito_maximo, color="blue", linestyle="--", linewidth=2,
+               label=f"Tu crédito máximo: ${credito_maximo:,.0f}")
+    ax.set_title("Precio mediano por alcaldía vs tu crédito máximo", fontsize=14)
+    ax.set_xlabel("Precio mediano (MXN)")
+    ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x:,.0f}"))
+    ax.legend()
+    plt.tight_layout()
+    st.pyplot(fig)
+
+    st.divider()
+
+    # Tabla resumen
+    st.subheader("📋 Resumen por alcaldía")
+    tabla = resumen_alcaldias[["places", "precio_mediano", "propiedades_accesibles", "estado"]].copy()
+    tabla.columns = ["Alcaldía", "Precio mediano (MXN)", "Propiedades en tu rango", "Estado"]
+    tabla["Precio mediano (MXN)"] = tabla["Precio mediano (MXN)"].apply(lambda x: f"${x:,.0f}")
+    tabla = tabla.sort_values("Estado")
+    st.dataframe(tabla, use_container_width=True, hide_index=True)
+
+    st.divider()
+
+    st.markdown("""
+    **¿Cómo se calcula el crédito máximo?**
+    
+    Se usa la fórmula estándar de crédito hipotecario considerando tu mensualidad máxima 
+    (30% de tu salario), la tasa de interés anual y el plazo seleccionado. 
+    Es una estimación referencial — cada banco tiene sus propios criterios de aprobación.
+    """)
