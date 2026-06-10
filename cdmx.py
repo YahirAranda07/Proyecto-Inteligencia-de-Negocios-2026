@@ -671,85 +671,138 @@ elif seccion == "📝 Observaciones":
     """)
 elif seccion == "🔮 Predicciones":
     st.title("🔮 Predicciones")
-    st.markdown("Ingresa las características del inmueble para estimar su valor de mercado según el modelo.")
+    st.markdown("Ingresa tus preferencias y te mostraremos el **Top 3 de mejores alcaldías** para comprar según tu presupuesto y necesidades.")
 
     st.divider()
 
     col1, col2 = st.columns(2)
 
     with col1:
-        lugar = st.selectbox("Lugar en CDMX", options=sorted(le_places.classes_))
-        tipo = st.selectbox("Tipo de inmueble", options=sorted(le_type.classes_))
-
-    # Calcular precio promedio por m² del lugar seleccionado
-    precio_m2_promedio = df_clean[df_clean["places"] == lugar]["price_per_m2"].mean()
-    precio_m2_min = int(df_clean[df_clean["places"] == lugar]["price_per_m2"].quantile(0.10))
-    precio_m2_max = int(df_clean[df_clean["places"] == lugar]["price_per_m2"].quantile(0.90))
-
-    with col2:
-        metros = st.number_input("Superficie cubierta (m²)", min_value=10, max_value=1000, value=80, step=5)
-        precio_m2 = st.number_input(
-            f"Precio por m² en {lugar} (MXN)",
-            min_value=1000,
-            max_value=200000,
-            value=int(precio_m2_promedio),
-            step=500,
-            help=f"Rango típico en {lugar}: ${precio_m2_min:,} — ${precio_m2_max:,} MXN por m²"
+        presupuesto_min = st.number_input(
+            "💰 Presupuesto mínimo (MXN)",
+            min_value=100000,
+            max_value=50000000,
+            value=800000,
+            step=50000,
+            format="%d"
+        )
+        presupuesto_max = st.number_input(
+            "💰 Presupuesto máximo (MXN)",
+            min_value=100000,
+            max_value=50000000,
+            value=2000000,
+            step=50000,
+            format="%d"
         )
 
-    # Mostrar contexto del lugar seleccionado
+    with col2:
+        metros = st.number_input(
+            "📐 Metros cuadrados deseados",
+            min_value=20,
+            max_value=500,
+            value=70,
+            step=5
+        )
+        tipo = st.selectbox(
+            "🏠 Tipo de inmueble",
+            options=["apartment", "house"],
+            format_func=lambda x: "Departamento" if x == "apartment" else "Casa"
+        )
+
     st.divider()
-    st.markdown(f"#### 📍 Referencia del mercado en {lugar}")
 
-    col_ref1, col_ref2, col_ref3 = st.columns(3)
-    with col_ref1:
-        st.metric("Precio por m² promedio", f"${precio_m2_promedio:,.0f} MXN")
-    with col_ref2:
-        st.metric("Rango típico mínimo (10%)", f"${precio_m2_min:,} MXN")
-    with col_ref3:
-        st.metric("Rango típico máximo (90%)", f"${precio_m2_max:,} MXN")
+    if st.button("🔍 Buscar mejores opciones", use_container_width=True):
 
-    st.caption("ℹ️ El precio por m² se actualiza automáticamente según el lugar seleccionado. Puedes ajustarlo manualmente si tienes un valor específico.")
+        if presupuesto_min >= presupuesto_max:
+            st.error("El presupuesto mínimo debe ser menor al presupuesto máximo.")
+        else:
+            tipo_enc = le_type.transform([tipo])[0]
+            resultados = []
 
-    st.divider()
+            for lugar in sorted(le_places.classes_):
+                lugar_enc = le_places.transform([lugar])[0]
+                precio_m2_promedio = df_clean[
+                    (df_clean["places"] == lugar) &
+                    (df_clean["property_type"] == tipo)
+                ]["price_per_m2"].mean()
 
-    if st.button("Estimar precio", use_container_width=True):
-        lugar_enc = le_places.transform([lugar])[0]
-        tipo_enc = le_type.transform([tipo])[0]
+                if pd.isna(precio_m2_promedio):
+                    continue
 
-        X_pred = pd.DataFrame([[metros, precio_m2, lugar_enc, tipo_enc]],
-                              columns=["surface_covered_in_m2", "price_per_m2", "places_enc", "type_enc"])
+                X_pred = pd.DataFrame([[metros, precio_m2_promedio, lugar_enc, tipo_enc]],
+                                      columns=["surface_covered_in_m2", "price_per_m2", "places_enc", "type_enc"])
+                precio_estimado = dt.predict(X_pred)[0]
 
-        precio_estimado = dt.predict(X_pred)[0]
+                # Solo incluir si está dentro del presupuesto
+                if presupuesto_min <= precio_estimado <= presupuesto_max:
+                    precio_real_promedio = df_clean[
+                        (df_clean["places"] == lugar) &
+                        (df_clean["property_type"] == tipo)
+                    ]["price"].mean()
 
-        st.success(f"💰 Precio estimado: **${precio_estimado:,.0f} MXN**")
+                    props_disponibles = len(df_clean[
+                        (df_clean["places"] == lugar) &
+                        (df_clean["property_type"] == tipo) &
+                        (df_clean["price"] >= presupuesto_min) &
+                        (df_clean["price"] <= presupuesto_max)
+                    ])
 
-        st.divider()
+                    oport = len(df_model2[
+                        (df_model2["places"] == lugar) &
+                        (df_model2["property_type"] == tipo) &
+                        (df_model2["diferencia_pct"] < -10) &
+                        (df_model2["diferencia_pct"] > -40) &
+                        (df_model2["price"] >= presupuesto_min) &
+                        (df_model2["price"] <= presupuesto_max)
+                    ])
 
-        col3, col4, col5 = st.columns(3)
-        with col3:
-            st.metric("Precio estimado (MXN)", f"${precio_estimado:,.0f}")
-        with col4:
-            st.metric("Precio estimado (USD)", f"${precio_estimado / 17.5:,.0f}")
-        with col5:
-            st.metric("Precio por m²", f"${precio_estimado / metros:,.0f} MXN")
+                    resultados.append({
+                        "lugar": lugar,
+                        "precio_estimado": precio_estimado,
+                        "precio_real_promedio": precio_real_promedio,
+                        "props_disponibles": props_disponibles,
+                        "oportunidades": oport,
+                        "precio_m2": precio_m2_promedio
+                    })
 
-        st.divider()
+            # Ordenar por mayor número de oportunidades y propiedades disponibles
+            resultados = sorted(resultados, key=lambda x: (x["oportunidades"], x["props_disponibles"]), reverse=True)
 
-        promedio_lugar = df_clean[df_clean["places"] == lugar]["price"].mean()
-        diferencia = precio_estimado - promedio_lugar
-        diferencia_pct = (diferencia / promedio_lugar) * 100
+            if len(resultados) == 0:
+                st.warning("No encontramos alcaldías que se ajusten a tu presupuesto y preferencias. Intenta ampliar tu rango de presupuesto o ajustar los metros cuadrados.")
 
-        st.markdown("#### Comparación con el mercado")
-        col6, col7 = st.columns(2)
-        with col6:
-            st.metric(
-                f"Precio promedio en {lugar}",
-                f"${promedio_lugar:,.0f} MXN",
-                delta=f"{diferencia_pct:.1f}% vs estimado"
-            )
-        with col7:
-            if diferencia < 0:
-                st.success(f"✅ El precio estimado está **${abs(diferencia):,.0f} MXN por debajo** del promedio de {lugar} — posible oportunidad de inversión.")
             else:
-                st.warning(f"⚠️ El precio estimado está **${diferencia:,.0f} MXN por encima** del promedio de {lugar}.")
+                top3 = resultados[:3]
+                st.subheader(f"🏆 Top 3 mejores opciones para ti")
+                st.markdown(f"Resultados para: **{'Departamento' if tipo == 'apartment' else 'Casa'}** de **{metros} m²** con presupuesto de **${presupuesto_min:,.0f} — ${presupuesto_max:,.0f} MXN**")
+
+                st.divider()
+
+                medallas = ["🥇", "🥈", "🥉"]
+                colores_card = ["success", "warning", "info"]
+
+                for i, res in enumerate(top3):
+                    if colores_card[i] == "success":
+                        st.success(f"""
+                        {medallas[i]} **{res['lugar']}**
+                        """)
+                    elif colores_card[i] == "warning":
+                        st.warning(f"""
+                        {medallas[i]} **{res['lugar']}**
+                        """)
+                    else:
+                        st.info(f"""
+                        {medallas[i]} **{res['lugar']}**
+                        """)
+
+                    c1, c2, c3, c4 = st.columns(4)
+                    c1.metric("Precio estimado", f"${res['precio_estimado']:,.0f} MXN")
+                    c2.metric("Precio promedio real", f"${res['precio_real_promedio']:,.0f} MXN")
+                    c3.metric("Propiedades disponibles", f"{res['props_disponibles']:,}")
+                    c4.metric("Oportunidades subvaluadas", f"{res['oportunidades']:,}")
+
+                    st.markdown(f"📐 Precio por m² promedio en {res['lugar']}: **${res['precio_m2']:,.0f} MXN**")
+                    st.divider()
+
+                if len(resultados) > 3:
+                    st.markdown(f"*También encontramos {len(resultados) - 3} alcaldías adicionales que se ajustan a tu presupuesto.*")
