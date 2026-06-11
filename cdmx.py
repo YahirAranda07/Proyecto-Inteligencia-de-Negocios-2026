@@ -216,25 +216,22 @@ elif seccion == "📍 Resumen por Alcaldía":
     st.divider()
 
     st.subheader("🏠 Por tipo de inmueble")
-  
-    df_apt = df_clean[df_clean["property_type"] == "apartment"]
-    df_house = df_clean[df_clean["property_type"] == "house"]
 
     st.markdown("#### 🏢 Departamentos")
     a1, a2, a3, a4 = st.columns(4)
-    a1.metric("Total", f"{len(df_apt):,}")
-    a2.metric("Mediana", f"${df_apt['price'].median():,.0f} MXN")
-    a3.metric("Precio promedio", f"${df_apt['price'].mean():,.0f} MXN")
-    a4.metric("Precio por m²", f"${df_apt['price_per_m2'].mean():,.0f} MXN")
+    a1.metric("Total", f"{len(df_sel_apt):,}")
+    a2.metric("Precio promedio", f"${df_sel_apt['price'].mean():,.0f} MXN")
+    a3.metric("Precio mediano", f"${df_sel_apt['price'].median():,.0f} MXN")
+    a4.metric("m² promedio", f"{df_sel_apt['surface_covered_in_m2'].mean():,.0f} m²")
 
     st.markdown("")
 
     st.markdown("#### 🏡 Casas")
     h1, h2, h3, h4 = st.columns(4)
-    h1.metric("Total", f"{len(df_house):,}")
-    h2.metric("Mediana", f"${df_house['price'].median():,.0f} MXN")
-    h3.metric("Precio promedio", f"${df_house['price'].mean():,.0f} MXN")
-    h4.metric("Precio por m²", f"${df_house['price_per_m2'].mean():,.0f} MXN")
+    h1.metric("Total", f"{len(df_sel_house):,}")
+    h2.metric("Precio promedio", f"${df_sel_house['price'].mean():,.0f} MXN")
+    h3.metric("Precio mediano", f"${df_sel_house['price'].median():,.0f} MXN")
+    h4.metric("m² promedio", f"{df_sel_house['surface_covered_in_m2'].mean():,.0f} m²")
 
     st.divider()
 
