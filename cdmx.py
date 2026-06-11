@@ -117,10 +117,10 @@ if seccion == "🏠 Inicio":
     st.markdown("""
     Este tablero está pensado para resolver dudas muy concretas a la hora de buscar dónde comprar:
 
-    - **¿Cuánto cuesta en promedio vivir en cada alcaldía** y cómo se compara con las demás?
-    - **¿Qué alcaldías se ajustan a mi presupuesto** si tengo un rango de precio definido?
-    - **¿Dónde están ubicadas las propiedades disponibles** y cómo varían los precios geográficamente?
-    - **Con mi presupuesto, metros cuadrados deseados y tipo de inmueble, ¿cuáles son mis 3 mejores opciones de alcaldía?**
+    - ¿Cuánto cuesta en promedio vivir en cada alcaldía y cómo se compara con las demás?
+    - ¿Qué alcaldías se ajustan a mi presupuesto y si tengo un rango de precio definido?
+    - ¿Dónde están ubicadas las propiedades disponibles y cómo varían los precios geográficamente?
+    - Con mi presupuesto, metros cuadrados deseados y tipo de inmueble, ¿cuáles son mis 3 mejores opciones de alcaldía?
 
     Usando datos reales del mercado y un modelo de Machine Learning, este tablero te permite 
     explorar el mercado inmobiliario de la CDMX de forma simple y tomar una decisión 
