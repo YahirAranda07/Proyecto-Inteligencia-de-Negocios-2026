@@ -113,37 +113,18 @@ if seccion == "🏠 Inicio":
 
     st.divider()
 
-    st.subheader("📌 Contexto")
-    st.markdown("""
-    Tienes entre 25 y 30 años, estás saliendo de la carrera o llevas pocos años trabajando 
-    y por primera vez estás pensando en serio en comprar una propiedad en la CDMX. 
-    El problema es que no sabes por dónde empezar.
-
-    Buscas en portales inmobiliarios y ves precios que van desde $800,000 hasta $15,000,000 MXN 
-    en la misma alcaldía, sin entender por qué. Alguien te dice que en Benito Juárez está todo 
-    caro, otro que en Iztapalapa hay oportunidades, y tu banco te aprueba un crédito que no 
-    alcanza para lo que imaginabas.
-
-    El mercado inmobiliario de la CDMX tiene un problema real: **la información está fragmentada, 
-    es difícil de interpretar y favorece siempre al vendedor**. Quienes más pierden son los 
-    compradores jóvenes que no tienen experiencia negociando ni acceso a datos del mercado.
-    """)
-
-    st.divider()
-
     st.subheader("🎯 ¿Para qué sirve este tablero?")
     st.markdown("""
-    Este tablero nació para responder las preguntas que cualquier joven comprador se hace 
-    antes de tomar la decisión más importante de su vida financiera:
+    Este tablero está pensado para resolver dudas muy concretas a la hora de buscar dónde comprar:
 
-    - **¿El precio que me están pidiendo es justo?** — o me están cobrando de más por la alcaldía
-    - **¿En qué alcaldía me conviene más invertir** con el presupuesto que tengo?
-    - **¿Qué tan caro es el m²** en la alcaldía que me interesa comparado con las demás?
-    - **¿Existe alguna propiedad subvaluada** que nadie más ha detectado?
+    - **¿Cuánto cuesta en promedio vivir en cada alcaldía** y cómo se compara con las demás?
+    - **¿Qué alcaldías se ajustan a mi presupuesto** si tengo un rango de precio definido?
+    - **¿Dónde están ubicadas las propiedades disponibles** y cómo varían los precios geográficamente?
+    - **Con mi presupuesto, metros cuadrados deseados y tipo de inmueble, ¿cuáles son mis 3 mejores opciones de alcaldía?**
 
-    Usando datos reales del mercado y un modelo de Machine Learning, este tablero te da 
-    una ventaja que antes solo tenían los desarrolladores y agentes inmobiliarios con años 
-    de experiencia.
+    Usando datos reales del mercado y un modelo de Machine Learning, este tablero te permite 
+    explorar el mercado inmobiliario de la CDMX de forma simple y tomar una decisión 
+    más informada.
     """)
 
     st.divider()
@@ -210,16 +191,6 @@ if seccion == "🏠 Inicio":
         El análisis está respaldado por un Árbol de Decisión con R² de 0.89 entrenado 
         con datos reales del mercado inmobiliario de la CDMX.
         """)
-
-    st.divider()
-
-    st.subheader("📋 Nota metodológica")
-    st.markdown("""
-    - El dataset contiene **{:,} propiedades** después de eliminar tipos de inmueble no relevantes (locales comerciales y PH).
-    - Se removieron outliers extremos (percentil 1-99) para garantizar análisis más representativos.
-    - El modelo de Machine Learning fue entrenado con el **80% de los datos** y evaluado con el **20% restante**.
-    - Las oportunidades de inversión se definen como propiedades cuyo precio real está entre **10% y 40% por debajo** del valor estimado por el modelo.
-    """.format(len(df)))
 
 elif seccion == "📍 Resumen por Alcaldía":
     st.title("📍 Resumen por Alcaldía")
