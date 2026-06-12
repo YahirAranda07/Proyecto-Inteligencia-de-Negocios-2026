@@ -145,7 +145,8 @@ streamlit run cdmx.py
 
 
 ## 👥 Autores
-0245536 Monserrath Sánchez
-0286935 Yahir Aranda
-0286935 Yahir Aranda
-0223985 Amir  Daoud
+
+- 0245536 Monserrath Sánchez
+
+- 0286935 Yahir Aranda
+
