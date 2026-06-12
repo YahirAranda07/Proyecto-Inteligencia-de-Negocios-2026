@@ -115,24 +115,7 @@ Estos parámetros limitan la complejidad del árbol para que aprenda patrones ge
 - **Streamlit** — Tablero interactivo
 - **Joblib** — Serialización del modelo
 
----
 
-## ▶️ Cómo ejecutar el proyecto
-
-1. Clona el repositorio:
-```bash
-git clone https://github.com/tu_usuario/proyecto-inteligencia-de-negocios-2026.git
-```
-
-2. Instala las dependencias:
-```bash
-pip install -r requirements.txt
-```
-
-3. Ejecuta la aplicación:
-```bash
-streamlit run cdmx.py
-```
 
 ---
 
