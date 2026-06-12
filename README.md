@@ -1,40 +1,57 @@
-# 🏠 Análisis del Mercado Inmobiliario - CDMX
+# 🏠 Análisis de Propiedades - CDMX
 
-## ¿En qué lugar en CDMX conviene más invertir para compra-venta de inmuebles?
+## ¿En qué alcaldía conviene más comprar una propiedad en la CDMX?
 
-Este proyecto analiza el mercado inmobiliario de la Ciudad de México mediante técnicas de análisis de datos y Machine Learning, con el objetivo de identificar oportunidades de inversión y predecir precios de inmuebles.
-
----
-
-## 📌 Problema
-
-El mercado inmobiliario de la CDMX es opaco y complejo. Compradores, inversores y agentes carecen de herramientas para identificar si un precio es justo o detectar oportunidades reales de inversión. Este tablero busca democratizar el acceso a información del mercado inmobiliario mediante datos y modelos predictivos.
+Este proyecto analiza el mercado inmobiliario de la Ciudad de México mediante análisis de datos y Machine Learning, pensado para jóvenes profesionistas entre 23 y 30 años que están considerando comprar su primera propiedad.
 
 ---
 
-## 🎯 Objetivo
+## 📌 Contexto
 
-- Identificar los factores clave que determinan el precio de un inmueble
-- Detectar propiedades subvaluadas que representen oportunidades de inversión
-- Visualizar la distribución geográfica de precios y plusvalía por alcaldía
-- Proveer una herramienta de predicción de precios basada en datos reales
+Si tienes entre 23 y 30 años, estás saliendo de la carrera o llevas pocos años trabajando, y por primera vez estás pensando en comprar una propiedad en la CDMX, seguramente te has encontrado con varios problemas:
+
+- **Precios sin sentido** — al buscar en portales encuentras rangos de precio muy alejados dentro de la misma alcaldía, sin forma de saber si lo que te ofrecen es justo.
+- **Información fragmentada** — hay portales y recomendaciones por todos lados, pero ninguno te da un panorama claro de qué zonas se ajustan a tu presupuesto, tu trabajo y tu estilo de vida al mismo tiempo.
+- **El vendedor siempre lleva ventaja** — quien vende lleva años en el mercado y sabe exactamente cuánto vale su propiedad y hasta dónde puede negociar. El comprador llega sin ningún punto de referencia.
+- **Presupuesto limitado** — un profesionista recién egresado destina entre el 25% y 30% de su ingreso mensual a vivienda, y con eso las zonas accesibles no siempre coinciden con las que necesita por ubicación, seguridad o calidad de vida.
+- **Los precios ya no reflejan la realidad del comprador local** — a partir de la llegada de trabajadores extranjeros que perciben ingresos en dólares se generó un alza sostenida en zonas como Roma, Condesa y Narvarte. El comprador mexicano recién egresado compite en un mercado que ya no está calibrado para su nivel de ingreso.
+
+---
+
+## 🎯 ¿Para qué sirve este tablero?
+
+Este tablero está pensado para resolver dudas muy concretas a la hora de buscar dónde comprar:
+
+- ¿Cuánto cuesta en promedio vivir en cada alcaldía y cómo se compara con las demás?
+- ¿Qué alcaldías se ajustan a mi presupuesto si tengo un rango de precio definido?
+- ¿Dónde están ubicadas las propiedades disponibles y cómo varían los precios geográficamente?
+- Con mi presupuesto, metros cuadrados deseados y tipo de inmueble, ¿cuáles son mis 3 mejores opciones de alcaldía?
 
 ---
 
 ## 📊 Dataset
 
 - **Fuente:** Dataset de propiedades en venta en la CDMX
-- **Total de registros:** 18,234 propiedades
+- **Registros después de limpieza:** 18,053 propiedades
 - **Variables principales:**
 
 | Variable | Descripción | Tipo |
 |---|---|---|
 | `price` | Precio en MXN | Cuantitativa continua |
 | `places` | Alcaldía | Cualitativa nominal |
-| `property_type` | Tipo de inmueble | Cualitativa nominal |
+| `property_type` | Tipo de inmueble (casa/departamento) | Cualitativa nominal |
 | `surface_covered_in_m2` | Superficie cubierta | Cuantitativa continua |
 | `price_per_m2` | Precio por metro cuadrado | Cuantitativa continua |
 | `lat-lon` | Coordenadas geográficas | Cuantitativa continua |
+
+---
+
+## 🧹 Limpieza de datos
+
+1. **Filtrado de tipos de inmueble** — se eliminaron `store` y `PH`, quedando solo `apartment` y `house`.
+2. **Separación de coordenadas** — la columna `lat-lon` se dividió en `lat` y `lon`, corrigiendo inconsistencias de separadores (`:` vs `,`).
+3. **Eliminación de outliers** — se removió el percentil 1-99 de `price` y `surface_covered_in_m2` para evitar distorsiones en correlaciones y modelo.
+
 
 ---
 
@@ -62,31 +79,29 @@ Se entrenaron y compararon dos modelos:
 
 ### ¿Por qué el Árbol de Decisión?
 
-El Árbol de Decisión supera a la Regresión Lineal porque el precio de un inmueble no depende de una sola fórmula fija — depende de la combinación de varios factores. El árbol aprende estas combinaciones y predice con mayor precisión.
+El precio de un inmueble no depende de una sola fórmula fija — depende de la combinación de varios factores. Un departamento de 100 m² en Miguel Hidalgo tiene un valor muy diferente al mismo departamento en Iztapalapa. El Árbol de Decisión aprende estas combinaciones y predice con mayor precisión.
+
+**Variables utilizadas:**
+- `surface_covered_in_m2` — metros cuadrados
+- `price_per_m2` — precio por m²
+- `places` — alcaldía
+- `property_type` — tipo de inmueble
 
 **Hiperparámetros utilizados:**
 - `max_depth = 6`
 - `min_samples_split = 100`
 - `min_samples_leaf = 50`
 
----
-
-## 💰 Principales hallazgos
-
-- **Benito Juárez** es el lugar con mayor volumen de oportunidades de inversión con 770 propiedades subvaluadas
-- **Tláhuac** y **Cuajimalpa** ofrecen los mayores descuentos promedio con 22.9% y 22.2% respectivamente
-- **Iztapalapa** representa el mejor balance entre volumen y descuento con 392 oportunidades y 20.8% de descuento promedio
-- Los lugares del poniente y sur concentran los precios más altos por m² — **Miguel Hidalgo** y **Cuajimalpa** lideran en plusvalía
+Estos parámetros limitan la complejidad del árbol para que aprenda patrones generales del mercado en lugar de memorizar casos individuales (overfitting).
 
 ---
 
 ## 🗺️ Secciones del tablero
 
-- **📊 Gráficas** — Distribución de precios, volumen de oferta y análisis por tipo de inmueble
-- **🗺️ Mapa** — Mapa interactivo de propiedades y mapa de calor de plusvalía por alcaldía
-- **🤖 Modelo ML** — Comparación de modelos y análisis de correlaciones
-- **📝 Observaciones** — Hallazgos principales y recomendaciones de inversión
-- **🔮 Predicciones** — Herramienta para estimar el precio de cualquier inmueble
+- **🏠 Inicio** — Contexto del proyecto, objetivo y resumen general del dataset.
+- **📍 Resumen por Alcaldía** — Selecciona una alcaldía y consulta sus estadísticas clave: precios, metros cuadrados, oportunidades y distribución del mercado.
+- **🗺️ Mapa** — Mapa interactivo de propiedades filtrable por alcaldía, tipo de inmueble y precio, además de un mapa de valuación promedio por alcaldía.
+- **🔮 Predicciones** — Ingresa tu presupuesto, metros cuadrados deseados y tipo de inmueble, y obtén el Top 3 de alcaldías que mejor se ajustan a tus necesidades.
 
 ---
 
@@ -123,12 +138,14 @@ streamlit run cdmx.py
 
 ## 🌐 Demo en línea
 
-Puedes acceder al tablero en línea aquí:  
-👉 [Ver tablero en Streamlit](https://tu-app.streamlit.app)
+👉 [Ver tablero en Streamlit](https://proyecto-inteligencia-de-negocios2026.streamlit.app/)
 
 ---
 
+
+
 ## 👥 Autores
 0245536 Monserrath Sánchez
+0286935 Yahir Aranda
 0286935 Yahir Aranda
 0223985 Amir  Daoud
